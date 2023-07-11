@@ -27,8 +27,11 @@ namespace facebook {
 namespace vpdq {
 namespace hashing {
 
-// Decode and add vpdqFeature to the hashes vector
-// Returns the number of frames processed or -1 if failure
+/**
+ *  Decode and add vpdqFeature to the hashes vector
+ *  Returns the number of frames processed or -1 if failure
+ **/
+
 static int processFrame(
     AVPacket* packet,
     AVFrame* frame,
@@ -47,6 +50,7 @@ static int processFrame(
     fprintf(stderr, "Error: Cannot send packet to decoder\n");
     return -1;
   }
+
   // Receive the decoded frame
   while (ret >= 0) {
     ret = avcodec_receive_frame(codecContext, frame);
@@ -227,8 +231,10 @@ bool hashVideoFile(
 
   int frameMod = secondsPerHash * framesPerSec;
   if (frameMod == 0) {
-    // Avoid truncate to zero on corner-case with secondsPerHash = 1
-    // and framesPerSec < 1.
+    /**
+     * Avoid truncate to zero on corner-case with secondsPerHash = 1
+     * and framesPerSec < 1.
+     **/
     frameMod = 1;
   }
 
@@ -240,7 +246,7 @@ bool hashVideoFile(
     // Check if the packet belongs to the video stream
     if (packet->stream_index == videoStreamIndex) {
       int ret;
-      // Process the frame at interval
+
       ret = processFrame(
           packet,
           frame,
@@ -253,11 +259,13 @@ bool hashVideoFile(
           verbose,
           frameNumber,
           frameMod);
+
       if (ret == -1) {
         fprintf(stderr, "Error: Cannot process frame\n");
         failed = true;
         break;
       }
+
       frameNumber = ret;
     }
 
@@ -265,9 +273,12 @@ bool hashVideoFile(
   }
 
   if (!failed) {
-    // Flush decode buffer
-    // See
-    // https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
+    /**
+     * Flush decode buffer
+     * See for more information:
+     * https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
+     **/
+
     ret = processFrame(
         packet,
         frame,
