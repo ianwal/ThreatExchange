@@ -133,10 +133,6 @@ bool hashVideoFile(
   av_image_alloc(
       targetFrame->data, targetFrame->linesize, width, height, pixelFormat, 1);
 
-  // Calculate bytes per pixel
-  int bytesPerPixel = av_get_bytes_per_sample(
-      static_cast<AVSampleFormat>(codecContext->pix_fmt));
-
   // Allocate buffer for target frame
   int numBytes = av_image_get_buffer_size(
       pixelFormat, targetFrame->width, targetFrame->height, 1);
@@ -162,9 +158,6 @@ bool hashVideoFile(
       nullptr,
       nullptr,
       nullptr);
-
-  // Seek to the first frame of the video
-  av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
 
   AVPacket* packet = av_packet_alloc();
 
