@@ -144,9 +144,17 @@ bool hashVideoFile(
       static_cast<AVSampleFormat>(codecContext->pix_fmt));
 
   // Allocate buffer for target frame
-  int numBytes = av_image_get_buffer_size(framePixelFormat, targetFrame->width, targetFrame->height, 1);
+  int numBytes = av_image_get_buffer_size(
+      framePixelFormat, targetFrame->width, targetFrame->height, 1);
   uint8_t* buffer = (uint8_t*)av_malloc(numBytes);
-  av_image_fill_arrays(targetFrame->data, targetFrame->linesize, buffer, framePixelFormat, targetFrame->width, targetFrame->height, 1);
+  av_image_fill_arrays(
+      targetFrame->data,
+      targetFrame->linesize,
+      buffer,
+      framePixelFormat,
+      targetFrame->width,
+      targetFrame->height,
+      1);
 
   // Create the image rescaler context
   SwsContext* swsContext = sws_getContext(
@@ -167,6 +175,7 @@ bool hashVideoFile(
   AVPacket* packet = av_packet_alloc();
 
   int fno = 0;
+  // Intentional floor operation calculate frameMod as an integer
   int frameMod = secondsPerHash * framesPerSec;
   if (frameMod == 0) {
     // Avoid truncate to zero on corner-case with secondsPerHash = 1
@@ -203,27 +212,28 @@ bool hashVideoFile(
               targetFrame->data,
               targetFrame->linesize);
 
-            // Call pdqHasher to hash the frame
-            int quality;
-            pdq::hashing::Hash256 pdqHash;
-            if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
-              fprintf(
-                  stderr,
-                  "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
-                  argv0,
-                  fno);
-              failed = true;
-              goto cleanup;
-            }
+          // Call pdqHasher to hash the frame
+          int quality;
+          pdq::hashing::Hash256 pdqHash;
+          if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
+            fprintf(
+                stderr,
+                "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
+                argv0,
+                fno);
+            failed = true;
+            goto cleanup;
+          }
 
-            // Add vpdqFeature to vector
-            pdqHashes.push_back({pdqHash, fno, quality, (double)fno / framesPerSec});
-            if (verbose) {
-              printf("PDQHash: %s \n", pdqHash.format().c_str());
-            }
+          // Add vpdqFeature to vector
+          pdqHashes.push_back(
+              {pdqHash, fno, quality, (double)fno / framesPerSec});
+          if (verbose) {
+            printf("PDQHash: %s \n", pdqHash.format().c_str());
+          }
         }
-      fno += 1;
       }
+      fno += 1;
     }
     av_packet_unref(packet);
   }
