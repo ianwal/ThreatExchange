@@ -79,9 +79,11 @@ static int processFrame(
       }
 
       // Push to pdqHashes vector
-      pdqHashes.push_back({pdqHash, frameNumber, quality, (double)frameNumber / framesPerSec});
+      pdqHashes.push_back(
+          {pdqHash, frameNumber, quality, (double)frameNumber / framesPerSec});
       if (verbose) {
-        printf("frame: %d, PDQHash: %s\n", frameNumber, pdqHash.format().c_str());
+        printf(
+            "frame: %d, PDQHash: %s\n", frameNumber, pdqHash.format().c_str());
       }
     }
     frameNumber += 1;
@@ -263,7 +265,8 @@ bool hashVideoFile(
   }
 
   // Flush decode buffer
-  // See https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
+  // See
+  // https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
   ret = processFrame(
       packet,
       frame,
