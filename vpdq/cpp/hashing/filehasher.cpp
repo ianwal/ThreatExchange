@@ -254,9 +254,9 @@ bool hashVideoFile(
           frameNumber,
           frameMod);
       if (ret == -1) {
-        failed = true;
         fprintf(stderr, "Error: Cannot process frame\n");
-        goto cleanup;
+        failed = true;
+        break;
       }
       frameNumber = ret;
     }
@@ -264,27 +264,28 @@ bool hashVideoFile(
     av_packet_unref(packet);
   }
 
-  // Flush decode buffer
-  // See
-  // https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
-  ret = processFrame(
-      packet,
-      frame,
-      targetFrame,
-      swsContext,
-      codecContext,
-      phasher,
-      pdqHashes,
-      framesPerSec,
-      verbose,
-      frameNumber,
-      frameMod);
-  if (ret == -1) {
-    failed = true;
-    fprintf(stderr, "Error: Cannot process frame\n");
+  if (!failed) {
+    // Flush decode buffer
+    // See
+    // https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
+    ret = processFrame(
+        packet,
+        frame,
+        targetFrame,
+        swsContext,
+        codecContext,
+        phasher,
+        pdqHashes,
+        framesPerSec,
+        verbose,
+        frameNumber,
+        frameMod);
+    if (ret == -1) {
+      failed = true;
+      fprintf(stderr, "Error: Cannot process frame\n");
+    }
   }
 
-cleanup:
   av_packet_free(&packet);
   sws_freeContext(swsContext);
   av_frame_free(&frame);
