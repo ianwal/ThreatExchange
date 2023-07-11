@@ -88,7 +88,7 @@ bool hashVideoFile(
   // Find the video decoder
   const AVCodec* codec = avcodec_find_decoder(codecParameters->codec_id);
   if (!codec) {
-    fprintf(stderr, "Error: Decoder not found\n");
+    fprintf(stderr, "Error: Codec decoder not found\n");
     avformat_close_input(&formatContext);
     return false;
   }
@@ -99,6 +99,17 @@ bool hashVideoFile(
     fprintf(stderr, "Error: Failed to copy codec parameters to context\n");
     avformat_close_input(&formatContext);
     return false;
+  }
+
+  // Determine the number of threads to use
+  codecContext->thread_count = 0;
+
+  if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    codecContext->thread_type = FF_THREAD_FRAME;
+  } else if (codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    codecContext->thread_type = FF_THREAD_SLICE;
+  } else {
+    codecContext->thread_count = 1;
   }
 
   if (avcodec_open2(codecContext, codec, nullptr) < 0) {
@@ -121,7 +132,7 @@ bool hashVideoFile(
       targetFrame->linesize,
       width,
       height,
-      codecContext->pix_fmt,
+      AV_PIX_FMT_RGB24,
       1);
 
   // Calculate bytes per pixel
@@ -129,18 +140,9 @@ bool hashVideoFile(
       static_cast<AVSampleFormat>(codecContext->pix_fmt));
 
   // Allocate buffer for target frame
-  int numBytes =
-      av_image_get_buffer_size(codecContext->pix_fmt, width, height, 1);
-  uint8_t* buffer =
-      static_cast<uint8_t*>(av_malloc(numBytes * sizeof(uint8_t)));
-  av_image_fill_arrays(
-      targetFrame->data,
-      targetFrame->linesize,
-      buffer,
-      codecContext->pix_fmt,
-      width,
-      height,
-      1);
+  int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, targetFrame->width, targetFrame->height, 1);
+  uint8_t* buffer = (uint8_t*)av_malloc(numBytes);
+  av_image_fill_arrays(targetFrame->data, targetFrame->linesize, buffer, AV_PIX_FMT_RGB24, targetFrame->width, targetFrame->height, 1);
 
   // Create the image rescaler context
   SwsContext* swsContext = sws_getContext(
@@ -156,15 +158,7 @@ bool hashVideoFile(
       nullptr);
 
   // Seek to the beginning of the video
-  av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
-
-  // Variables for one-second intervals
-  int64_t nextFrameTime = 0;
-  int64_t frameTimeIncrement = static_cast<int64_t>(
-      AV_TIME_BASE * formatContext->streams[videoStreamIndex]->time_base.den /
-      formatContext->streams[videoStreamIndex]->time_base.num);
-
-  std::cout << frameTimeIncrement << endl;
+  //av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
 
   AVPacket* packet = av_packet_alloc();
 
@@ -192,14 +186,8 @@ bool hashVideoFile(
       // Receive the decoded frame
       while (avcodec_receive_frame(codecContext, frame) == 0) {
         if (fno % frameMod == 0) {
-            if (frame->format != AV_PIX_FMT_RGB24) {
-                sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height,
-                          targetFrame->data, targetFrame->linesize);
-            } else {
-                // The frame is already in RGB24 format
-                av_frame_copy(targetFrame, frame);
-            }
-        // Resize the frame
+
+        // Resize the frame and convert to RGB24
         sws_scale(
             swsContext,
             frame->data,
@@ -223,8 +211,6 @@ bool hashVideoFile(
           }
 
 
-          // Increment the frame number counter
-
           // Push to pdqHashes vector
           pdqHashes.push_back(
               {pdqHash, fno, quality, (double)fno / framesPerSec});
@@ -232,12 +218,17 @@ bool hashVideoFile(
             printf("PDQHash: %s \n", pdqHash.format().c_str());
           }
 
-          // For demonstration purposes, print the frame's width and height
-          std::cout << "Frame: " << fno << " Frame Width: " << targetFrame->width
-                    << ", Height: " << targetFrame->height << std::endl;
+          //FILE* inputFp = fopen("test.rgb24", "wb");
+                      // Write the RGB data of the target frame to the output file
+          //  for (int y = 0; y < targetFrame->height; y++) {
+          //      fwrite(targetFrame->data[0] + y * targetFrame->linesize[0], 1, targetFrame->width * 3, inputFp);
+          //  }
+          //fclose(inputFp);
+          //exit(0);
 
-          // Increment the next frame time by one second
-          //nextFrameTime += frameTimeIncrement;
+          //std::cout << "Frame: " << fno << " Frame Width: " << targetFrame->width
+          //          << ", Height: " << targetFrame->height << std::endl;
+
         }
       fno += 1;
       }
@@ -336,7 +327,7 @@ bool hashVideoFile(
     }
   }
   return true;
- */ 
+*/
 }
 
 } // namespace hashing
