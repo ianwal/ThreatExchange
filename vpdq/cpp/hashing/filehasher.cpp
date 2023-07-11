@@ -28,10 +28,9 @@ namespace vpdq {
 namespace hashing {
 
 /**
- * Get frames by passing video file through ffmpeg
- * Then get pdq hashes for selected frames every secondsPerHash
- * The return boolean represents whether the hashing process is successful or
- *not.
+ * Get pdq hashes for selected frames every secondsPerHash
+ * The return boolean represents whether the hashing process
+ * is successful or not.
  **/
 
 bool hashVideoFile(
@@ -93,7 +92,7 @@ bool hashVideoFile(
     return false;
   }
 
-  // Create the codec context and open it
+  // Create the codec context
   AVCodecContext* codecContext = avcodec_alloc_context3(codec);
   if (avcodec_parameters_to_context(codecContext, codecParameters) < 0) {
     fprintf(stderr, "Error: Failed to copy codec parameters to context\n");
@@ -101,7 +100,8 @@ bool hashVideoFile(
     return false;
   }
 
-  // Determine the number of threads to use
+  // Set thread count for decoding
+  // This can have a big affect on performance
   codecContext->thread_count = 0;
 
   if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
@@ -112,19 +112,23 @@ bool hashVideoFile(
     codecContext->thread_count = 1;
   }
 
-  if (avcodec_open2(codecContext, codec, nullptr) < 0) {
+  // Open codec context
+  if (avcodec_open2(codecContext, codec, nullptr) != 0) {
     fprintf(stderr, "Error: Failed to open codec\n");
     avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
     return false;
   }
 
+  // Target frame pixel format to pass to PDQ
+  constexpr AVPixelFormat framePixelFormat = AV_PIX_FMT_RGB24;
+
   // Create the output frame
   AVFrame* frame = av_frame_alloc();
 
   // Create the target frame for resizing
   AVFrame* targetFrame = av_frame_alloc();
-  targetFrame->format = AV_PIX_FMT_RGB24;
+  targetFrame->format = framePixelFormat;
   targetFrame->width = width;
   targetFrame->height = height;
   av_image_alloc(
@@ -132,7 +136,7 @@ bool hashVideoFile(
       targetFrame->linesize,
       width,
       height,
-      AV_PIX_FMT_RGB24,
+      framePixelFormat,
       1);
 
   // Calculate bytes per pixel
@@ -140,9 +144,9 @@ bool hashVideoFile(
       static_cast<AVSampleFormat>(codecContext->pix_fmt));
 
   // Allocate buffer for target frame
-  int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, targetFrame->width, targetFrame->height, 1);
+  int numBytes = av_image_get_buffer_size(framePixelFormat, targetFrame->width, targetFrame->height, 1);
   uint8_t* buffer = (uint8_t*)av_malloc(numBytes);
-  av_image_fill_arrays(targetFrame->data, targetFrame->linesize, buffer, AV_PIX_FMT_RGB24, targetFrame->width, targetFrame->height, 1);
+  av_image_fill_arrays(targetFrame->data, targetFrame->linesize, buffer, framePixelFormat, targetFrame->width, targetFrame->height, 1);
 
   // Create the image rescaler context
   SwsContext* swsContext = sws_getContext(
@@ -151,183 +155,92 @@ bool hashVideoFile(
       codecContext->pix_fmt,
       width,
       height,
-      AV_PIX_FMT_RGB24,
-      SWS_BILINEAR,
+      framePixelFormat,
+      SWS_AREA,
       nullptr,
       nullptr,
       nullptr);
 
-  // Seek to the beginning of the video
-  //av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
+  // Seek to the first frame of the video
+  av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
 
   AVPacket* packet = av_packet_alloc();
 
   int fno = 0;
-  AVRational fr = formatContext->streams[videoStreamIndex]->avg_frame_rate;
   int frameMod = secondsPerHash * framesPerSec;
-  printf("%d %f\n", frameMod, framesPerSec);
   if (frameMod == 0) {
     // Avoid truncate to zero on corner-case with secondsPerHash = 1
     // and framesPerSec < 1.
     frameMod = 1;
   }
 
-  // Read frames
-  while (av_read_frame(formatContext, packet) >= 0) {
-        // Process the frame at interval
+  bool failed = false;
+  while (av_read_frame(formatContext, packet) == 0) {
     // Check if the packet belongs to the video stream
     if (packet->stream_index == videoStreamIndex) {
       // Send the packet to the decoder
-      if (avcodec_send_packet(codecContext, packet) < 0) {
+      if (avcodec_send_packet(codecContext, packet) != 0) {
         fprintf(stderr, "Error: Cannot send packet to decoder\n");
-        break;
+        failed = true;
+        goto cleanup;
       }
 
       // Receive the decoded frame
       while (avcodec_receive_frame(codecContext, frame) == 0) {
+        // Process the frame at interval
         if (fno % frameMod == 0) {
-
-        // Resize the frame and convert to RGB24
-        sws_scale(
-            swsContext,
-            frame->data,
-            frame->linesize,
-            0,
-            codecContext->height,
-            targetFrame->data,
-            targetFrame->linesize);
-
-          // Call pdqHasher to hash the frame
-          int quality;
-          pdq::hashing::Hash256 pdqHash;
-          printf("%d %d %d\n", targetFrame->data[0][0], targetFrame->data[0][1], targetFrame->data[0][2]);
-          if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
-            fprintf(
-                stderr,
-                "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
-                argv0,
-                fno);
-            break;
-          }
-
-
-          // Push to pdqHashes vector
-          pdqHashes.push_back(
-              {pdqHash, fno, quality, (double)fno / framesPerSec});
           if (verbose) {
-            printf("PDQHash: %s \n", pdqHash.format().c_str());
+            printf("selectframe %d\n", fno);
           }
 
-          //FILE* inputFp = fopen("test.rgb24", "wb");
-                      // Write the RGB data of the target frame to the output file
-          //  for (int y = 0; y < targetFrame->height; y++) {
-          //      fwrite(targetFrame->data[0] + y * targetFrame->linesize[0], 1, targetFrame->width * 3, inputFp);
-          //  }
-          //fclose(inputFp);
-          //exit(0);
+          // Resize the frame, convert to RGB24, and place result in targetFrame
+          sws_scale(
+              swsContext,
+              frame->data,
+              frame->linesize,
+              0,
+              codecContext->height,
+              targetFrame->data,
+              targetFrame->linesize);
 
-          //std::cout << "Frame: " << fno << " Frame Width: " << targetFrame->width
-          //          << ", Height: " << targetFrame->height << std::endl;
+            // Call pdqHasher to hash the frame
+            int quality;
+            pdq::hashing::Hash256 pdqHash;
+            if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
+              fprintf(
+                  stderr,
+                  "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
+                  argv0,
+                  fno);
+              failed = true;
+              goto cleanup;
+            }
 
+            // Add vpdqFeature to vector
+            pdqHashes.push_back({pdqHash, fno, quality, (double)fno / framesPerSec});
+            if (verbose) {
+              printf("PDQHash: %s \n", pdqHash.format().c_str());
+            }
         }
       fno += 1;
       }
     }
-
     av_packet_unref(packet);
   }
 
+cleanup:
+  av_packet_free(&packet);
+  sws_freeContext(swsContext);
   av_frame_free(&frame);
   av_frame_free(&targetFrame);
-  avcodec_close(codecContext);
   avcodec_free_context(&codecContext);
   avformat_close_input(&formatContext);
-  sws_freeContext(swsContext);
 
-  return true;
-/*
-  stringstream ss;
-
-  ss << quoted(inputVideoFileName);
-  string escapedInputVideoFileName = ss.str();
-  // FFMPEG command to process the downsampled video
-
-  string ffmpegLogLevel =
-      verbose ? "" : "-loglevel error -hide_banner -nostats";
-  string command = ffmpegPath + " " + ffmpegLogLevel + " -nostdin -i " +
-      escapedInputVideoFileName + " -s " + to_string(width) + ":" +
-      to_string(height) + " -an -f rawvideo -c:v rawvideo -pix_fmt rgb24" +
-      " pipe:1";
-  FILE* inputFp = popen(command.c_str(), "r");
-  if (inputFp == nullptr) {
-    fprintf(stderr, "%s: ffmpeg to generate video stream failed\n", argv0);
+  if (failed) {
     return false;
   }
 
-  bool eof = false;
-
-  // Create the PDQ Frame Buffer Hasher
-  std::unique_ptr<vpdq::hashing::AbstractFrameBufferHasher> phasher =
-      vpdq::hashing::FrameBufferHasherFactory::createFrameHasher(height, width);
-  if (phasher == nullptr) {
-    fprintf(stderr, "Error: Phasher is null");
-    return false;
-  }
-
-  // Create a Frame Buffer to reuse everytime for hashing
-  int numRGBTriples = height * width;
-  int fno = 0;
-  unique_ptr<uint8_t[]> rawFrameBuffer(new uint8_t[numRGBTriples * 3]);
-  // Intentional floor operation calculate frameMod as an integer
-  int frameMod = secondsPerHash * framesPerSec;
-  if (frameMod == 0) {
-    // Avoid truncate to zero on corner-case with secondsPerHash = 1
-    // and framesPerSec < 1.
-    frameMod = 1;
-  }
-  // Loop through the video frames
-  while (!feof(inputFp)) {
-    size_t fread_rc = fread(rawFrameBuffer.get(), 3, numRGBTriples, inputFp);
-    if (fread_rc == 0) {
-      eof = true;
-    }
-    if (eof) {
-      break;
-    }
-    pdq::hashing::Hash256 pdqHash;
-    if (fno % frameMod == 0) {
-      if (verbose) {
-        printf("selectframe %d\n", fno);
-      }
-      // Call pdqHasher to hash the frame
-      int quality;
-      if (!phasher->hashFrame(rawFrameBuffer.get(), pdqHash, quality)) {
-        fprintf(
-            stderr,
-            "%s: failed to hash frame buffer. Frame width or height smaller than minimum hashable dimension. %d.\n",
-            argv0,
-            fno);
-        return false;
-      }
-      printf("%d %d %d\n", rawFrameBuffer.get()[0], rawFrameBuffer.get()[1], rawFrameBuffer.get()[2]);
-      // Push to pdqHashes vector
-      pdqHashes.push_back({pdqHash, fno, quality, (double)fno / framesPerSec});
-      if (verbose) {
-        printf("PDQHash: %s \n", pdqHash.format().c_str());
-      }
-    }
-    fno++;
-    if (fread_rc != numRGBTriples) {
-      perror("fread");
-      fprintf(
-          stderr,
-          "Expected %d RGB triples; got %d\n",
-          numRGBTriples,
-          (int)fread_rc);
-    }
-  }
   return true;
-*/
 }
 
 } // namespace hashing
