@@ -27,6 +27,68 @@ namespace facebook {
 namespace vpdq {
 namespace hashing {
 
+// Decode and add vpdqFeature to the hashes vector
+// Returns the number of frames processed or -1 if failure
+static int processFrame(
+    AVPacket* packet,
+    AVFrame* frame,
+    AVFrame* targetFrame,
+    SwsContext* swsContext,
+    AVCodecContext* codecContext,
+    unique_ptr<vpdq::hashing::AbstractFrameBufferHasher>& phasher,
+    vector<hashing::vpdqFeature>& pdqHashes,
+    double framesPerSec,
+    bool verbose,
+    int frameNumber,
+    int frameMod) {
+  // Send the packet to the decoder
+  int ret = avcodec_send_packet(codecContext, packet) < 0;
+  if (ret < 0) {
+    fprintf(stderr, "Error: Cannot send packet to decoder\n");
+    return -1;
+  }
+  // Receive the decoded frame
+  while (ret >= 0) {
+    ret = avcodec_receive_frame(codecContext, frame);
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+      break;
+    } else if (ret < 0) {
+      fprintf(stderr, "Error: Cannot receive frame from decoder\n");
+      return -1;
+    }
+
+    if (frameNumber % frameMod == 0) {
+      // Resize the frame and convert to RGB24
+      sws_scale(
+          swsContext,
+          frame->data,
+          frame->linesize,
+          0,
+          codecContext->height,
+          targetFrame->data,
+          targetFrame->linesize);
+      // Call pdqHasher to hash the frame
+      int quality;
+      pdq::hashing::Hash256 pdqHash;
+      if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
+        fprintf(
+            stderr,
+            "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension.\n",
+            frameNumber);
+        return -1;
+      }
+
+      // Push to pdqHashes vector
+      pdqHashes.push_back({pdqHash, frameNumber, quality, (double)frameNumber / framesPerSec});
+      if (verbose) {
+        printf("frame: %d, PDQHash: %s\n", frameNumber, pdqHash.format().c_str());
+      }
+    }
+    frameNumber += 1;
+  }
+  return frameNumber;
+}
+
 /**
  * Get pdq hashes for selected frames every secondsPerHash
  * The return boolean represents whether the hashing process
@@ -161,7 +223,6 @@ bool hashVideoFile(
 
   AVPacket* packet = av_packet_alloc();
 
-  int fno = 0;
   int frameMod = secondsPerHash * framesPerSec;
   if (frameMod == 0) {
     // Avoid truncate to zero on corner-case with secondsPerHash = 1
@@ -169,95 +230,55 @@ bool hashVideoFile(
     frameMod = 1;
   }
 
+  int frameNumber = 0;
+  int ret = 0;
   // Read frames in a loop and process them
   bool failed = false;
   while (av_read_frame(formatContext, packet) == 0) {
     // Check if the packet belongs to the video stream
     if (packet->stream_index == videoStreamIndex) {
-      // Send the packet to the decoder
-      if (avcodec_send_packet(codecContext, packet) < 0) {
-        fprintf(stderr, "Error: Cannot send packet to decoder\n");
+      int ret;
+      // Process the frame at interval
+      ret = processFrame(
+          packet,
+          frame,
+          targetFrame,
+          swsContext,
+          codecContext,
+          phasher,
+          pdqHashes,
+          framesPerSec,
+          verbose,
+          frameNumber,
+          frameMod);
+      if (ret == -1) {
         failed = true;
+        fprintf(stderr, "Error: Cannot process frame\n");
         goto cleanup;
       }
-
-      // Process the frame at interval
-      if (fno % frameMod == 0) {
-        // Receive the decoded frame
-        while (avcodec_receive_frame(codecContext, frame) == 0) {
-          // Resize the frame and convert to RGB24
-          sws_scale(
-              swsContext,
-              frame->data,
-              frame->linesize,
-              0,
-              codecContext->height,
-              targetFrame->data,
-              targetFrame->linesize);
-          // Call pdqHasher to hash the frame
-          int quality;
-          pdq::hashing::Hash256 pdqHash;
-          if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
-            fprintf(
-                stderr,
-                "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
-                argv0,
-                fno);
-            failed = true;
-            goto cleanup;
-          }
-
-          // Push to pdqHashes vector
-          pdqHashes.push_back(
-              {pdqHash, fno, quality, (double)fno / framesPerSec});
-          if (verbose) {
-            printf("PDQHash: %s\n", pdqHash.format().c_str());
-          }
-          fno += 1;
-        }
-      }
+      frameNumber = ret;
     }
 
     av_packet_unref(packet);
   }
 
-  // Flush the decoder to drain all buffered frames
-  while (avcodec_send_packet(codecContext, packet) != AVERROR_EOF) {
-    if (fno % frameMod == 0) {
-      // Receive the decoded frame
-      while (avcodec_receive_frame(codecContext, frame) == 0) {
-        // Resize the frame and convert to RGB24
-        sws_scale(
-            swsContext,
-            frame->data,
-            frame->linesize,
-            0,
-            codecContext->height,
-            targetFrame->data,
-            targetFrame->linesize);
-        // Call pdqHasher to hash the frame
-        int quality;
-        pdq::hashing::Hash256 pdqHash;
-        if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
-          fprintf(
-              stderr,
-              "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension. %d.\n",
-              argv0,
-              fno);
-          failed = true;
-          goto cleanup;
-        }
-
-        // Add vpdqFeature to vector
-        pdqHashes.push_back(
-            {pdqHash, fno, quality, (double)fno / framesPerSec});
-        if (verbose) {
-          printf("PDQHash: %s \n", pdqHash.format().c_str());
-        }
-        fno += 1;
-      }
-    }
-    av_packet_unref(packet);
+  // Flush decode buffer
+  // See https://github.com/FFmpeg/FFmpeg/blob/6a9d3f46c7fc661b86192e922ab932495d27f953/doc/examples/decode_video.c#L182
+  ret = processFrame(
+      packet,
+      frame,
+      targetFrame,
+      swsContext,
+      codecContext,
+      phasher,
+      pdqHashes,
+      framesPerSec,
+      verbose,
+      frameNumber,
+      frameMod);
+  if (ret == -1) {
+    failed = true;
+    fprintf(stderr, "Error: Cannot process frame\n");
   }
 
 cleanup:
