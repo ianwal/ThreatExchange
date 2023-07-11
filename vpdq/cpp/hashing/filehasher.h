@@ -15,7 +15,7 @@ namespace vpdq {
 namespace hashing {
 
 /**
- * Get frames by passing video file through ffmpeg
+ * Get frames from the video
  * Then get pdq hashes for selected frames every secondPerHash
  *
  * @param inputVideoFileName Input video's name
