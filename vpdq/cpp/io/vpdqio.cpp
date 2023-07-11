@@ -140,6 +140,7 @@ bool readVideoStreamInfo(
         "%s: could not find video stream info \"%s\".\n",
         programName,
         inputVideoFileName.c_str());
+    avformat_close_input(&pFormatCtx);
     return false;
   }
   for (int i = 0; i < pFormatCtx->nb_streams; i++) {
@@ -154,6 +155,7 @@ bool readVideoStreamInfo(
         "%s: could not find video stream \"%s\".\n",
         programName,
         inputVideoFileName.c_str());
+    avformat_close_input(&pFormatCtx);
     return false;
   }
   AVCodecParameters* videoParameter =
@@ -169,6 +171,7 @@ bool readVideoStreamInfo(
   }
 
   framesPerSec = (double)fr.num / (double)fr.den;
+  avformat_close_input(&pFormatCtx);
   return true;
 }
 
@@ -189,6 +192,7 @@ bool readVideoDuration(
     return false;
   }
   durationInSec = (double)pFormatCtx->duration / MILLISEC_IN_SEC;
+  avformat_close_input(&pFormatCtx);
   return true;
 }
 } // namespace io
