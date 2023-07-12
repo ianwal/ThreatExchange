@@ -14,6 +14,17 @@ on:
     paths:
       - "python-threatexchange/**"
       - ".github/workflows/python-threatexchange-ci.yaml"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
 
 defaults:
   run:
