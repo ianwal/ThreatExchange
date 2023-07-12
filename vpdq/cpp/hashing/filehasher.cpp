@@ -8,10 +8,6 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/filehasher.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -20,6 +16,10 @@ extern "C" {
 #include <libavutil/mem.h>
 #include <libswscale/swscale.h>
 }
+
+#include <vpdq/cpp/hashing/bufferhasher.h>
+#include <vpdq/cpp/hashing/filehasher.h>
+#include <vpdq/cpp/hashing/vpdqHashType.h>
 
 using namespace std;
 
