@@ -8,12 +8,16 @@ on:
     paths:
       - "vpdq/python/**"
       - ".github/workflows/vpdq-ci-python.yaml"
+      - "vpdq/cpp/**"
+      - ".github/workflows/vpdq-ci-cpp.yml"
   pull_request:
     branches:
       - main
     paths:
       - "vpdq/python/**"
       - ".github/workflows/vpdq-ci-python.yaml"
+      - "vpdq/cpp/**"
+      - ".github/workflows/vpdq-ci-cpp.yml"
   workflow_dispatch:
     inputs:
       logLevel:
