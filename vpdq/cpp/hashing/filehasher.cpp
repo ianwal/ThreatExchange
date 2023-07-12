@@ -29,16 +29,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/filehasher.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
-
-using namespace std;
-
-namespace facebook {
-namespace vpdq {
-namespace hashing {
-
 /**
  * Writes an AVFrame to file. Useful for debugging.
  * Not used by any other functions.
