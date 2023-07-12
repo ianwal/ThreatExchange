@@ -99,7 +99,7 @@ static int processFrame(
       if (!phasher->hashFrame(targetFrame->data[0], pdqHash, quality)) {
         fprintf(
             stderr,
-            "%s: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension.\n",
+            "%d: failed to hash frame buffer. Frame width or height smaller than the minimum hashable dimension.\n",
             frameNumber);
         return -1;
       }
