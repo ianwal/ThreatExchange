@@ -14,6 +14,17 @@ on:
     paths:
       - "tmk/cpp/**"
       - ".github/workflows/tmk-ci-cpp.yml"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
 
 defaults:
   run:
