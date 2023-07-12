@@ -32,8 +32,8 @@ namespace hashing {
  * Not used by any other functions.
  *
  * This can viewed using ffplay directly:
- * ffplay -f rawvideo -pixel_format rgb24 -video_size <WIDTH>x<HEIGHT>
- * <filename>
+ * ffplay -f rawvideo -pixel_format rgb24 \
+ * -video_size <WIDTH>x<HEIGHT> <filename>
  **/
 static void saveFrameToFile(AVFrame* frame, const char* filename) {
   FILE* output = fopen(filename, "wb");
@@ -113,8 +113,7 @@ static int processFrame(
       pdqHashes.push_back(
           {pdqHash, frameNumber, quality, (double)frameNumber / framesPerSec});
       if (verbose) {
-        printf(
-            "frame: %d, PDQHash: %s\n", frameNumber, pdqHash.format().c_str());
+        printf("PDQHash: %s\n", pdqHash.format().c_str());
       }
     }
     frameNumber += 1;
@@ -220,14 +219,24 @@ bool hashVideoFile(
   // Pixel format for the image passed to PDQ
   constexpr AVPixelFormat pixelFormat = AV_PIX_FMT_RGB24;
 
-  // Create the target frame for resizing
+  // Create a frame for resizing and converting the decoded frame to RGB24
   AVFrame* targetFrame = av_frame_alloc();
   targetFrame->format = pixelFormat;
   targetFrame->width = width;
   targetFrame->height = height;
-  // TODO: Check for alloc failure for av_image_alloc()
-  av_image_alloc(
-      targetFrame->data, targetFrame->linesize, width, height, pixelFormat, 1);
+  if (av_image_alloc(
+          targetFrame->data,
+          targetFrame->linesize,
+          width,
+          height,
+          pixelFormat,
+          1) < 0) {
+    fprintf(stderr, "Error: Failed to allocate target frame\n");
+    av_frame_free(&targetFrame);
+    av_frame_free(&frame);
+    avcodec_free_context(&codecContext);
+    avformat_close_input(&formatContext);
+  }
 
   // Create the image rescaler context
   SwsContext* swsContext = sws_getContext(
@@ -242,7 +251,27 @@ bool hashVideoFile(
       nullptr,
       nullptr);
 
+  if (swsContext == nullptr) {
+    fprintf(stderr, "Error: Failed to create sws context\n");
+    av_freep(targetFrame->data);
+    av_frame_free(&targetFrame);
+    av_frame_free(&frame);
+    avcodec_free_context(&codecContext);
+    avformat_close_input(&formatContext);
+    return false;
+  }
+
   AVPacket* packet = av_packet_alloc();
+  if (packet == nullptr) {
+    fprintf(stderr, "Error: Failed to allocate packet\n");
+    sws_freeContext(swsContext);
+    av_freep(targetFrame->data);
+    av_frame_free(&targetFrame);
+    av_frame_free(&frame);
+    avcodec_free_context(&codecContext);
+    avformat_close_input(&formatContext);
+    return false;
+  }
 
   int frameMod = secondsPerHash * framesPerSec;
   if (frameMod == 0) {
@@ -314,11 +343,11 @@ bool hashVideoFile(
     av_packet_unref(packet);
   }
 
-  av_freep(targetFrame->data);
   av_packet_free(&packet);
   sws_freeContext(swsContext);
-  av_frame_free(&frame);
+  av_freep(targetFrame->data);
   av_frame_free(&targetFrame);
+  av_frame_free(&frame);
   avcodec_free_context(&codecContext);
   avformat_close_input(&formatContext);
 
