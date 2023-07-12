@@ -28,6 +28,28 @@ namespace vpdq {
 namespace hashing {
 
 /**
+ * Writes an AVFrame to file. Useful for debugging.
+ * Not used by any other functions.
+ *
+ * This can viewed using ffplay directly:
+ * ffplay -f rawvideo -pixel_format rgb24 -video_size <WIDTH>x<HEIGHT>
+ * <filename>
+ **/
+static void saveFrameToFile(AVFrame* frame, const char* filename) {
+  FILE* output = fopen(filename, "wb");
+  for (int y = 0; y < frame->height; y++) {
+    fwrite(
+        frame->data[0] + y * frame->linesize[0], 1, frame->width * 3, output);
+  }
+  printf(
+      "Saved frame to file %s with dimensions %dx%d\n",
+      filename,
+      frame->width,
+      frame->height);
+  fclose(output);
+}
+
+/**
  *  Decode and add vpdqFeature to the hashes vector
  *  Returns the number of frames processed or -1 if failure
  **/
@@ -81,6 +103,11 @@ static int processFrame(
             frameNumber);
         return -1;
       }
+
+      /**
+       *  Write frame to file for debugging
+       *  saveFrameToFile(targetFrame, "frame.rgb");
+       **/
 
       // Push to pdqHashes vector
       pdqHashes.push_back(
@@ -198,21 +225,9 @@ bool hashVideoFile(
   targetFrame->format = pixelFormat;
   targetFrame->width = width;
   targetFrame->height = height;
+  // TODO: Check for alloc failure for av_image_alloc()
   av_image_alloc(
       targetFrame->data, targetFrame->linesize, width, height, pixelFormat, 1);
-
-  // Allocate buffer for target frame
-  int numBytes = av_image_get_buffer_size(
-      pixelFormat, targetFrame->width, targetFrame->height, 1);
-  uint8_t* buffer = (uint8_t*)av_malloc(numBytes);
-  av_image_fill_arrays(
-      targetFrame->data,
-      targetFrame->linesize,
-      buffer,
-      pixelFormat,
-      targetFrame->width,
-      targetFrame->height,
-      1);
 
   // Create the image rescaler context
   SwsContext* swsContext = sws_getContext(
@@ -263,6 +278,7 @@ bool hashVideoFile(
       if (ret == -1) {
         fprintf(stderr, "Error: Cannot process frame\n");
         failed = true;
+        av_packet_unref(packet);
         break;
       }
 
@@ -295,8 +311,10 @@ bool hashVideoFile(
       failed = true;
       fprintf(stderr, "Error: Cannot process frame\n");
     }
+    av_packet_unref(packet);
   }
 
+  av_freep(targetFrame->data);
   av_packet_free(&packet);
   sws_freeContext(swsContext);
   av_frame_free(&frame);
