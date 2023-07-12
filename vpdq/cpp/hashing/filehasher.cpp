@@ -105,11 +105,11 @@ static int processFrame(
       }
 
       /**
-       *  Write frame to file for debugging
+       *  Write frame to file here for debugging:
        *  saveFrameToFile(targetFrame, "frame.rgb");
        **/
 
-      // Push to pdqHashes vector
+      // Append vpdq feature to pdqHashes vector
       pdqHashes.push_back(
           {pdqHash, frameNumber, quality, (double)frameNumber / framesPerSec});
       if (verbose) {
