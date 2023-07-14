@@ -56,7 +56,7 @@ class PDQHasher:
         for i in range(0, 16):
             di = [0] * 64
             for j in range(0, 64):
-                di[j] = math.cos((math.pi / 2 / 64.0) * (i + 1) * (2 * j + 1))
+                di[j] = matrix_scale_factor * math.cos((math.pi / 2 / 64.0) * (i + 1) * (2 * j + 1))
             d[i] = di
         return d
 
@@ -364,6 +364,8 @@ class PDQHasher:
                 sumk = float(0.0)
                 for k in range(64):
                     sumk += T[i][k] * D[j][k]
+                    print(sumk)
+                    exit()
                 B[i][j] = sumk
 
     """
