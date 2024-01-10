@@ -15,6 +15,13 @@ SETUP = "setup.py"
 MANIFEST = "MANIFEST.in"
 DIST = "dist"
 
+# Prevent error messages in later stages from not having wheel installed.
+try:
+    import wheel
+except Exception:
+    print("ERROR: wheel not installed. Did you install requirements.txt?")
+    sys.exit(1)
+
 
 def get_argparse() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
