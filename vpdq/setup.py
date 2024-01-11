@@ -17,39 +17,44 @@ logging.basicConfig()
 # because the paths are relative to the parent to the vpdq directory.
 # THIS HAS TO BE CHANGED!
 
-DIR = Path(__file__).parent
-read_me = DIR / Path("vpdq/python/README.md")
+DIR = Path(__file__).parent / "vpdq"
+read_me = DIR / Path("python/README.md")
 long_description = read_me.read_text()
-version = (DIR / "vpdq/version.txt").read_text(encoding="utf-8").strip()
-cpp_dir = DIR / "vpdq/cpp"
-build_dir = cpp_dir / "build"
+version = (DIR / "version.txt").read_text(encoding="utf-8").strip()
+cpp_dir = DIR / "cpp"
+cpp_build_dir = cpp_dir / "build"
 
 # Get the library directories and include directories from the environment variables
 # These variables should be set in the CMakeLists.txt file
-lib_dirs = os.getenv("LIBRARY_DIRS", "").split(":")
-include_dirs = os.getenv("INCLUDE_DIRS", "").split(":")
-# Something about this doesn't work on Windows,
-# but it could be the environment variable passing itself.
-include_dirs.extend(["vpdq/pdq", "./"])
+lib_dirs = []
+include_dirs = ["./"] # WTF? Why does this only compile pdq if I include "./" ??
 
 
 class build_ext(build_ext):
     def run(self):
+        global include_dirs
+        global lib_dirs
         try:
-            # TODO: Clean the build directory AND vpdq.cpp before building
-            # Otherwise it won't generate a new version of vpdq.cpp for each run
+            # TODO: Clean the build directory before building
+            logger.info("Removing compiled pyx .cpp file...")
+            Path.unlink(DIR / "python/vpdq.cpp", missing_ok=True)
+
             logger.info("Creating build directory...")
             subprocess.run(["mkdir", "build"], cwd=cpp_dir, check=False)
             logger.info("Running CMake...")
             cmake_proc = subprocess.run(
-                ["cmake", ".."], cwd=build_dir, check=True, capture_output=True
+                ["cmake", ".."], cwd=cpp_build_dir, check=True, capture_output=True
             )
             logger.info(str(cmake_proc.stdout, "utf-8"))
             logger.info("Compiling with Make...")
             make_proc = subprocess.run(
-                ["make"], cwd=build_dir, check=True, capture_output=True
+                ["make"], cwd=cpp_build_dir, check=True, capture_output=True
             )
             logger.info(str(make_proc.stdout, "utf-8"))
+            with open(str(cpp_dir) + "/libraries-dirs.txt", "r") as file:
+                for line in file:
+                    lib_dirs.append(line.strip())
+            include_dirs.extend(lib_dirs)
         except subprocess.CalledProcessError as e:
             logger.critical(str(e.stderr, "utf-8"))
             logger.critical("Failed to compile vpdq library.")
