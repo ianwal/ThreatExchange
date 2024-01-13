@@ -85,34 +85,7 @@ target_link_libraries(vpdq-hash-video
     PkgConfig::LIBAV
 )
 
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
-string(REPLACE ";" "\n" LIBRARY_LIST "${LIBAV_LINK_LIBRARIES}")
-
-# Set environment variable for the libraries
-# set(ENV{LIBRARY_LIST} "${LIBRARY_LIST}")
-
-# Define the output file name
-set(LIBRARIES_FILE "libraries.txt")
-
-# Write the library object file paths to a file for Cython
-file(WRITE ${LIBRARIES_FILE} ${LIBRARY_LIST})
-
-# Write the library link dirs to a file for Cython
+# Write the library dirs to a file for Cython to find the LIBAV files
 string(REPLACE ";" "\n" LIBRARY_DIRS "${LIBAV_STATIC_LIBRARY_DIRS}")
 set(LIBRARY_DIRS_FILE "libraries-dirs.txt")
 file(WRITE ${LIBRARY_DIRS_FILE} "${LIBRARY_DIRS}")
-
-#file(APPEND ${LIBRARY_DIRS_FILE} "\nvpdq/pdq")
-#string(REPLACE ";" "\n" LIBRARY_DIRS_2 "${HEADERS}")
-file(APPEND ${LIBRARY_DIRS_FILE} "\n../..")
-file(APPEND ${LIBRARY_DIRS_FILE} "\n./")
-
-# Pass the include and libav* library directories to setup.py for Python binding
-#set_target_properties(vpdqlib
-#    PROPERTIES
-#    ENVIRONMENT "LIBRARY_DIRS=$<TARGET_PROPERTY:PkgConfig::LIBAV,IMPORTED_LOCATION>;INCLUDE_DIRS=$<TARGET_PROPERTY:PkgConfig::LIBAV,INTERFACE_INCLUDE_DIRECTORIES>"
-#)
