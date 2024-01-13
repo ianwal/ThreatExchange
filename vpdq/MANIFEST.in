@@ -11,8 +11,10 @@ include pdq/cpp/hashing/pdqhashing.h
 include pdq/cpp/io/hashio.h
 include pdq/cpp/downscaling/downscaling.h
 include pdq/cpp/hashing/torben.h
-include vpdq/LICENSE.txt
-include vpdq/python/README.md
-include vpdq/version.txt
-include vpdq/cpp/CMakeLists.txt
-recursive-include vpdq *.py *pyx *.cpp *.h
+include LICENSE.txt
+include python/README.md
+include version.txt
+include cpp/CMakeLists.txt
+include pdq
+recursive-include . *.py *pyx *.cpp *.h
+recursive-include pdq *.cpp *.h
