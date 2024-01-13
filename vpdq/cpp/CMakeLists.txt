@@ -87,7 +87,7 @@ target_link_libraries(vpdq-hash-video
 
 get_cmake_property(_variableNames VARIABLES)
 foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
+#    message(STATUS "${_variableName}=${${_variableName}}")
 endforeach()
 
 string(REPLACE ";" "\n" LIBRARY_LIST "${LIBAV_LINK_LIBRARIES}")
@@ -107,7 +107,9 @@ set(LIBRARY_DIRS_FILE "libraries-dirs.txt")
 file(WRITE ${LIBRARY_DIRS_FILE} "${LIBRARY_DIRS}")
 
 #file(APPEND ${LIBRARY_DIRS_FILE} "\nvpdq/pdq")
-file(APPEND ${LIBRARY_DIRS_FILE} "${CMAKE_INCUDE_DIRECTORIES}")
+#string(REPLACE ";" "\n" LIBRARY_DIRS_2 "${HEADERS}")
+file(APPEND ${LIBRARY_DIRS_FILE} "\n../..")
+file(APPEND ${LIBRARY_DIRS_FILE} "\n./")
 
 # Pass the include and libav* library directories to setup.py for Python binding
 #set_target_properties(vpdqlib

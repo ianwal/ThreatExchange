@@ -1,6 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-from setuptools import setup
+import setuptools
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 import sys
@@ -8,6 +8,8 @@ import subprocess
 from pathlib import Path
 import os
 import logging
+import shutil
+from Cython.Build import cythonize
 
 logger = logging.getLogger("setup.py")
 logger.setLevel(logging.INFO)
@@ -17,17 +19,15 @@ logging.basicConfig()
 # because the paths are relative to the parent to the vpdq directory.
 # THIS HAS TO BE CHANGED!
 
-DIR = Path(__file__).parent / "vpdq"
-read_me = DIR / Path("python/README.md")
-long_description = read_me.read_text()
-version = (DIR / "version.txt").read_text(encoding="utf-8").strip()
+DIR = Path(__file__).parent
+
 cpp_dir = DIR / "cpp"
 cpp_build_dir = cpp_dir / "build"
 
 # Get the library directories and include directories from the environment variables
 # These variables should be set in the CMakeLists.txt file
 lib_dirs = []
-include_dirs = ["./"] # WTF? Why does this only compile pdq if I include "./" ??
+include_dirs = ["./"]
 
 
 class build_ext(build_ext):
@@ -36,6 +36,8 @@ class build_ext(build_ext):
         global lib_dirs
         try:
             # TODO: Clean the build directory before building
+            if Path.exists(cpp_build_dir):
+                shutil.rmtree(cpp_build_dir)
             logger.info("Removing compiled pyx .cpp file...")
             Path.unlink(DIR / "python/vpdq.cpp", missing_ok=True)
 
@@ -64,8 +66,8 @@ class build_ext(build_ext):
 
 EXTENSIONS = [
     Extension(
-        "vpdq",
-        sources=["vpdq/python/vpdq.pyx"],
+        name="vpdq",
+        sources=[ str(DIR) + "/python/vpdq.pyx"],
         language="c++",
         libraries=[
             "avdevice",
@@ -76,25 +78,19 @@ EXTENSIONS = [
             "swscale",
             "avutil",
         ],
-        extra_objects=["vpdq/cpp/build/libvpdqlib.a"],
+        extra_objects=[str(cpp_build_dir) + "/libvpdqlib.a"],
         library_dirs=lib_dirs,
-        include_dirs=include_dirs,
+        include_dirs=include_dirs.extend("../.."),
         extra_compile_args=["--std=c++14"],
     )
 ]
 
-setup(
-    name="vpdq",
-    author="Facebook",
-    description="Python bindings for Facebook VPDQ hash",
-    author_email="threatexchange@fb.com",
-    version=version,
-    license_files="LICENSE.txt",
-    license="BSD",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    install_requires=["cython"],
-    include_package_data=True,
+def get_version(): 
+    version = (DIR / "version.txt").read_text(encoding="utf-8").strip()
+    return version
+
+setuptools.setup(
+    version=get_version(),
     cmdclass={"build_ext": build_ext},
     ext_modules=EXTENSIONS,
     entry_points={"console_scripts": ["vpdq = vpdq:_cli"]},
