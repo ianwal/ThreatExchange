@@ -6,10 +6,8 @@ from setuptools.command.build_ext import build_ext
 import sys
 import subprocess
 from pathlib import Path
-import os
 import logging
 import shutil
-from Cython.Build import cythonize
 
 logger = logging.getLogger("setup.py")
 logger.setLevel(logging.INFO)
@@ -29,17 +27,22 @@ cpp_build_dir = cpp_dir / "build"
 lib_dirs = []
 include_dirs = [str(DIR), str(DIR.parent)]
 
+def make_clean():
+    if Path.exists(cpp_build_dir):
+        shutil.rmtree(cpp_build_dir)
+    logger.info("Removing compiled pyx .cpp file...")
+    Path.unlink(DIR / "python/vpdq.cpp", missing_ok=True)
+
+    logger.info("Removing libraries-dir.txt file...")
+    Path.unlink(DIR / "libraries-dirs.txt", missing_ok=True)
+
 
 class build_ext(build_ext):
     def run(self):
         global include_dirs
         global lib_dirs
         try:
-            # TODO: Clean the build directory before building
-            if Path.exists(cpp_build_dir):
-                shutil.rmtree(cpp_build_dir)
-            logger.info("Removing compiled pyx .cpp file...")
-            Path.unlink(DIR / "python/vpdq.cpp", missing_ok=True)
+            make_clean()
 
             logger.info("Creating build directory...")
             subprocess.run(["mkdir", "build"], cwd=cpp_dir, check=False)
@@ -80,7 +83,6 @@ EXTENSIONS = [
         extra_objects=[str(cpp_build_dir) + "/libvpdqlib.a"],
         library_dirs=lib_dirs,
         include_dirs=include_dirs,
-        extra_compile_args=["--std=c++14"],
     )
 ]
 
