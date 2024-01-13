@@ -74,7 +74,7 @@ def main():
         logger.info("Installing vpdq Python binding")
         try:
             install_proc = subprocess.run(
-                ["pip3", "install", "-e", "."],
+                ["python", "-m", "pip", "install", "-e", "."],
                 cwd=PARENTDIR,
                 check=True,
                 capture_output=True,

@@ -19,7 +19,7 @@ logging.basicConfig()
 # because the paths are relative to the parent to the vpdq directory.
 # THIS HAS TO BE CHANGED!
 
-DIR = Path(__file__).parent
+DIR = Path.absolute(Path(__file__).parent)
 
 cpp_dir = DIR / "cpp"
 cpp_build_dir = cpp_dir / "build"
@@ -27,7 +27,7 @@ cpp_build_dir = cpp_dir / "build"
 # Get the library directories and include directories from the environment variables
 # These variables should be set in the CMakeLists.txt file
 lib_dirs = []
-include_dirs = ["./"]
+include_dirs = [str(DIR), str(DIR.parent)]
 
 
 class build_ext(build_ext):
@@ -56,7 +56,6 @@ class build_ext(build_ext):
             with open(str(cpp_dir) + "/libraries-dirs.txt", "r") as file:
                 for line in file:
                     lib_dirs.append(line.strip())
-            include_dirs.extend(lib_dirs)
         except subprocess.CalledProcessError as e:
             logger.critical(str(e.stderr, "utf-8"))
             logger.critical("Failed to compile vpdq library.")
@@ -80,7 +79,7 @@ EXTENSIONS = [
         ],
         extra_objects=[str(cpp_build_dir) + "/libvpdqlib.a"],
         library_dirs=lib_dirs,
-        include_dirs=include_dirs.extend("../.."),
+        include_dirs=include_dirs,
         extra_compile_args=["--std=c++14"],
     )
 ]
@@ -94,4 +93,7 @@ setuptools.setup(
     cmdclass={"build_ext": build_ext},
     ext_modules=EXTENSIONS,
     entry_points={"console_scripts": ["vpdq = vpdq:_cli"]},
+    package_data= {'pdq': ["./pdq/cpp/common.h"]},
+
+    include_package_data=True,
 )

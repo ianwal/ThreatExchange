@@ -13,10 +13,10 @@ description="Python bindings for Facebook VPDQ hash"
 requires-python = ">= 3.8"
 readme={file = "python/README.md", content-type = "text/markdown"}
 license = {file = "LICENSE.txt"}
-dynamic = ["version", "scripts"]
+dynamic = ["version", "scripts", "entry-points"]
 
 [tool.setuptools.packages.find]
-where = ["python", "../../pdq"]  # list of folders that contain the packages (["."] by default)
+where = ["python"]  # list of folders that contain the packages (["."] by default)
 include = ["vpdq.pyx"]  # package names should match these glob patterns (["*"] by default)
 exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
