@@ -16,12 +16,12 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCES
-    ../../pdq/cpp/common/pdqhashtypes.cpp
-    ../../pdq/cpp/hashing/pdqhashing.cpp
-    ../../pdq/cpp/common/pdqhamming.cpp
-    ../../pdq/cpp/io/hashio.cpp
-    ../../pdq/cpp/downscaling/downscaling.cpp
-    ../../pdq/cpp/hashing/torben.cpp
+    ./pdq/cpp/common/pdqhashtypes.cpp
+    ./pdq/cpp/hashing/pdqhashing.cpp
+    ./pdq/cpp/common/pdqhamming.cpp
+    ./pdq/cpp/io/hashio.cpp
+    ./pdq/cpp/downscaling/downscaling.cpp
+    ./pdq/cpp/hashing/torben.cpp
     ./hashing/filehasher.cpp
     ./hashing/bufferhasher.cpp
     ./hashing/matchTwoHash.cpp
@@ -29,13 +29,13 @@ set(SOURCES
 )
 
 SET(HEADERS
-    ../../pdq/cpp/common/pdqbasetypes.h
-    ../../pdq/cpp/common/pdqhashtypes.h
-    ../../pdq/cpp/common/pdqhamming.h
-    ../../pdq/cpp/hashing/pdqhashing.h
-    ../../pdq/cpp/io/hashio.h
-    ../../pdq/cpp/downscaling/downscaling.h
-    ../../pdq/cpp/hashing/torben.h
+    ./pdq/cpp/common/pdqbasetypes.h
+    ./pdq/cpp/common/pdqhashtypes.h
+    ./pdq/cpp/common/pdqhamming.h
+    ./pdq/cpp/hashing/pdqhashing.h
+    ./pdq/cpp/io/hashio.h
+    ./pdq/cpp/downscaling/downscaling.h
+    ./pdq/cpp/hashing/torben.h
     ./hashing/filehasher.h
     ./hashing/vpdqHashType.h
     ./hashing/bufferhasher.h
