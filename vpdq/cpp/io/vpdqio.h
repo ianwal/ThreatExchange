@@ -6,7 +6,7 @@
 #define VPDQIO_H
 
 #include <pdq/cpp/common/pdqhashtypes.h>
-#include "hashing/vpdqHashType.h"
+#include <hashing/vpdqHashType.h>
 
 #include <vector>
 

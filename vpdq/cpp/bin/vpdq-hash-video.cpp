@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "hashing/filehasher.h"
-#include "hashing/vpdqHashType.h"
-#include "io/vpdqio.h"
+#include <hashing/filehasher.h>
+#include <hashing/vpdqHashType.h>
+#include <io/vpdqio.h>
 
 static void usage(char* argv0, int rc) {
   FILE* fp = (rc == 0) ? stdout : stderr;

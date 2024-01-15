@@ -5,9 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "hashing/matchTwoHash.h"
-#include "hashing/vpdqHashType.h"
-#include "io/vpdqio.h"
+#include <hashing/matchTwoHash.h>
+#include <hashing/vpdqHashType.h>
+#include <io/vpdqio.h>
 #include <pdq/cpp/io/hashio.h>
 
 using namespace std;

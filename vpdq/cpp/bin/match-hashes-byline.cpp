@@ -8,8 +8,8 @@
 #include <iostream>
 
 #include <pdq/cpp/io/hashio.h>
-#include "hashing/vpdqHashType.h"
-#include "io/vpdqio.h"
+#include <hashing/vpdqHashType.h>
+#include <io/vpdqio.h>
 
 using namespace std;
 using namespace facebook;

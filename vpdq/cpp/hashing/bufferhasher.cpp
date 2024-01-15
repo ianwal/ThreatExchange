@@ -10,7 +10,7 @@
 #include <pdq/cpp/common/pdqhashtypes.h>
 #include <pdq/cpp/downscaling/downscaling.h>
 #include <pdq/cpp/hashing/pdqhashing.h>
-#include "bufferhasher.h"
+#include <bufferhasher.h>
 
 namespace facebook {
 namespace vpdq {

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <pdq/cpp/common/pdqhashtypes.h>
-#include "hashing/vpdqHashType.h"
+#include <hashing/vpdqHashType.h>
 
 namespace facebook {
 namespace vpdq {

@@ -6,7 +6,7 @@
 #define MATCHTWOHASH_H
 
 #include <vector>
-#include "hashing/vpdqHashType.h"
+#include <hashing/vpdqHashType.h>
 
 namespace facebook {
 namespace vpdq {
