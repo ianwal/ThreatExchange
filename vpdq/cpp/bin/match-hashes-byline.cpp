@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
       if (verbose) {
         std::cout << "Skipping Line " << i
                   << " Hash1: " << video1Hashes[i].pdqHash.format()
-                  << " Hash 2: " << video2Hashes[i].pdqHash.format()
+                  << " Hash2: " << video2Hashes[i].pdqHash.format()
                   << ", because of low quality Hash1: "
                   << video1Hashes[i].quality
                   << " Hash2: " << video2Hashes[i].quality << std::endl;
