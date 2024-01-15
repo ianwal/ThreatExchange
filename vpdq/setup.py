@@ -18,48 +18,51 @@ DIR = Path.absolute(Path(__file__).parent)
 cpp_dir = DIR / "cpp"
 cpp_build_dir = cpp_dir / "build"
 cython_path = DIR / "python/vpdq.cpp"
-libraries_dirs_path = DIR / "libraries-dirs.txt"
+libraries_dirs_path = cpp_dir / "libraries-dirs.txt"
 
-# Get the library directories and include directories from the environment variables
-# These variables should be set in the CMakeLists.txt file
-lib_dirs = []
-include_dirs = [str(DIR), str(DIR.parent), str(DIR / "cpp")]
+lib_dirs: list[str] = []
+include_dirs: list[str] = [str(DIR), str(DIR.parent), str(DIR / "cpp")]
 
 
 def make_clean():
-    logger.info("Removing CPP build directory...")
+    """Remove CMake generated files."""
+    logger.info(f"Removing CPP build directory {cpp_build_dir}...")
     if Path.exists(cpp_build_dir):
         shutil.rmtree(cpp_build_dir)
-    #logger.info("Removing compiled pyx .cpp file...")
-    #Path.unlink(cython_path, missing_ok=True)
+    logger.info(f"Removing compiled resulting Cython vpdq.cpp file {cython_path}...")
+    Path.unlink(cython_path, missing_ok=True)
 
-    logger.info("Removing libraries-dir.txt file...")
+    logger.info(f"Clean: Removing libraries-dir.txt file {libraries_dirs_path}...")
     Path.unlink(libraries_dirs_path, missing_ok=True)
 
 
 class build_ext(build_ext):
     def run(self):
-        global include_dirs
         global lib_dirs
         try:
-            # make_clean()
+            make_clean()
             logger.info("Creating CPP build directory...")
             Path.mkdir(cpp_build_dir, exist_ok=True)
 
             logger.info("Running CMake...")
             cmake_proc = subprocess.run(
-                ["cmake", f"{cpp_dir}"], cwd=cpp_build_dir, check=True, capture_output=True
+                ["cmake", f"{cpp_dir}"],
+                cwd=cpp_build_dir,
+                check=True,
+                capture_output=True,
             )
             logger.info(str(cmake_proc.stdout, "utf-8"))
+
             logger.info("Compiling with Make...")
             make_proc = subprocess.run(
                 ["make"], cwd=cpp_build_dir, check=True, capture_output=True
             )
+
+            # Add the directories of required libraries that are found from CMake to lib_dirs
             logger.info(str(make_proc.stdout, "utf-8"))
-            with open(str(cpp_dir) + "/libraries-dirs.txt", "r") as file:
-                for line in file:
-                    lib_dirs.append(line.strip())
-                    include_dirs.append(line.strip())
+            with open(libraries_dirs_path, "r") as file:
+                lib_dirs = [line.strip() for line in file]
+
         except subprocess.CalledProcessError as e:
             logger.critical(str(e.stderr, "utf-8"))
             logger.critical("Failed to compile vpdq library.")
