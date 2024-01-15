@@ -92,7 +92,7 @@ target_link_libraries(vpdq-hash-video
     PkgConfig::LIBAV
 )
 
-# Write the library dirs to a file for Cython to find the LIBAV files
+# Write the library dirs to a new-line delimited file for Cython to be able to locate LIBAV files
 string(REPLACE ";" "\n" LIBRARY_DIRS "${LIBAV_STATIC_LIBRARY_DIRS}")
 set(LIBRARY_DIRS_FILE "libraries-dirs.txt")
 file(WRITE ${LIBRARY_DIRS_FILE} "${LIBRARY_DIRS}")
