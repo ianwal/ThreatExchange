@@ -4,9 +4,9 @@
 
 #include <iostream>
 
+#include <pdq/cpp/io/hashio.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
-#include <pdq/cpp/io/hashio.h>
 
 namespace facebook {
 namespace vpdq {
