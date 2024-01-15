@@ -26,7 +26,7 @@ cdef extern from "pdq/cpp/common/pdqhashtypes.h" namespace "facebook::pdq::hashi
         char* hex_str
     )
 
-cdef extern from "vpdq/cpp/hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
+cdef extern from "hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
     cdef struct vpdqFeature:
         Hash256 pdqHash;
         int frameNumber;
@@ -34,12 +34,12 @@ cdef extern from "vpdq/cpp/hashing/vpdqHashType.h" namespace "facebook::vpdq::ha
         float timeStamp;
 
 
-cdef extern from "vpdq/cpp/hashing/filehasher.h" namespace "facebook::vpdq::hashing":
+cdef extern from "hashing/filehasher.h" namespace "facebook::vpdq::hashing":
     bool hashVideoFile(
         string input_video_filename,
         vector[vpdqFeature]& pdqHashes,
         bool verbose,
-        double seconds_per_hash,
+        float seconds_per_hash,
         int width,
         int height,
         unsigned int thread_count,
@@ -52,10 +52,10 @@ class VpdqFeature:
     frame_number: int
     hash: Hash256
     hex: str
-    timestamp: double
+    timestamp: float
 
     def __init__(
-        self, quality: int, frame_number: int, hash: "Hash256", timestamp: double
+        self, quality: int, frame_number: int, hash: Hash256, timestamp: float
     ):
         self.quality = quality
         self.frame_number = frame_number
@@ -63,11 +63,11 @@ class VpdqFeature:
         self.hex = hash_to_hex(hash)
         self.timestamp = timestamp
 
-    def hamming_distance(self, that: "vpdq_feature"):
+    def hamming_distance(self, that: VpdqFeature):
         return hammingDistance(self.hash, that.hash)
 
 
-def hash_to_hex(hash_value: "Hash256") -> str:
+def hash_to_hex(hash_value: Hash256) -> str:
     """Convect from pdq hash to hex str
 
     Args:
@@ -83,7 +83,7 @@ def str_to_hash(str_hash: str):
     return fromStringOrDie(str(str_hash).encode("utf-8"))
 
 
-def hamming_distance(hash1: "Hash256", hash2: "Hash256") -> int:
+def hamming_distance(hash1: Hash256, hash2: Hash256) -> int:
     """
     Return the hamming distance between two pdq hashes
 
@@ -100,7 +100,7 @@ def hamming_distance(hash1: "Hash256", hash2: "Hash256") -> int:
 def computeHash(
     input_video_filename: t.Union[str, Path],
     ffmpeg_path: t.Union[str, None] = None,
-    seconds_per_hash: double = 1,
+    seconds_per_hash: float = 1.0,
     verbose: bool = False,
     downsample_width: int = 0,
     downsample_height: int = 0,
