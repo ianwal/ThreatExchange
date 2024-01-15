@@ -31,7 +31,7 @@ cdef extern from "hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
         Hash256 pdqHash;
         int frameNumber;
         int quality;
-        float timeStamp;
+        double timeStamp;
 
 
 cdef extern from "hashing/filehasher.h" namespace "facebook::vpdq::hashing":
@@ -39,7 +39,7 @@ cdef extern from "hashing/filehasher.h" namespace "facebook::vpdq::hashing":
         string input_video_filename,
         vector[vpdqFeature]& pdqHashes,
         bool verbose,
-        float seconds_per_hash,
+        double seconds_per_hash,
         int width,
         int height,
         unsigned int thread_count,
@@ -113,8 +113,8 @@ def computeHash(
         ffmpeg_path: ffmpeg path (this is not used anymore)
         verbose: If verbose, will print detailed information
         seconds_per_hash: The frequence(per second) a hash is generated from the video. If it is 0, will generate every frame's hash
-        downsample_width: Width to downsample the video to before hashing frames.. If it is 0, will use the original width of the video to hash
-        downsample_height: Height to downsample the video to before hashing frames.. If it is 0, will use the original height of the video to hash
+        downsample_width: Width to downsample the video to before hashing frames. If it is 0, will use the original width of the video to hash
+        downsample_height: Height to downsample the video to before hashing frames. If it is 0, will use the original height of the video to hash
         thread_count: Number of threads for hashing. If it is 0, will use choose automatically
     Returns:
         list of vpdq_feature: VPDQ hash from the video
