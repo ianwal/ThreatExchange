@@ -5,6 +5,8 @@ It is written in Cython.
 
 Development is hosted on [GitHub](https://github.com/facebook/ThreatExchange/tree/main/vpdq).
 
+Windows is currently not supported by the Cython bindings.
+
 ## Installation
 
 #### Install using PIP from [PyPI](https://pypi.org/project/vpdq/)
@@ -42,22 +44,46 @@ Sample Output:
 
 ## Development
 ### Dependencies
-All dependencies from the CPP implementation are required to build the binding. See the [README](../README.md) in the vpqd directory for more information.
+All dependencies from the CPP implementation are required to build the binding. See [README](../README.md) for more information.
 
 Creating a [venv](https://docs.python.org/3/library/venv.html) is optional, but recommended during development. 
 
-#### Local install
+### Local install
 
 In `vpdq/`:
 ```sh
-python vpdq-release.py -i
+python install -e .
 ```
 
-#### Tests
+You should now be able to run `python -c "import vpdq"` without error.
+
+### Tests
 
 The tests use sample videos from `ThreatExchange/tmk/sample-videos`
 
 Run the tests:
 ```sh
+python -m pip install pytest
 python -m pytest
+```
+
+### Distribution
+
+[build](https://github.com/pypa/build) is used for packaging and building wheels.
+
+In `vpdq/`:
+
+Install dependencies:
+```sh
+python -m pip install -r packaging-requirements.txt
+```
+
+Build package (output will be in `dist/`):
+```sh
+python -m build --sdist 
+```
+
+Build wheel (output will be in `dist/`):
+```sh
+python -m build --wheel
 ```
