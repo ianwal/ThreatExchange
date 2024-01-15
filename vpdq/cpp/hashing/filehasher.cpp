@@ -18,9 +18,9 @@
 #include <string>
 #include <thread>
 
-#include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/filehasher.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
+#include "hashing/bufferhasher.h"
+#include "hashing/filehasher.h"
+#include "hashing/vpdqHashType.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

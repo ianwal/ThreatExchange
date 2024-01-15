@@ -6,7 +6,9 @@
 #define VPDQIO_H
 
 #include <pdq/cpp/common/pdqhashtypes.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
+#include "hashing/vpdqHashType.h"
+
+#include <vector>
 
 namespace facebook {
 namespace vpdq {

@@ -5,10 +5,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <pdq/cpp/io/hashio.h>
-#include <vpdq/cpp/hashing/matchTwoHash.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
-#include <vpdq/cpp/io/vpdqio.h>
+#include "hashing/matchTwoHash.h"
+#include "hashing/vpdqHashType.h"
+#include "io/vpdqio.h"
+#include "pdq/cpp/io/hashio.h"
 
 using namespace std;
 using namespace facebook;

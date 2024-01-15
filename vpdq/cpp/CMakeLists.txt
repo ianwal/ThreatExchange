@@ -15,43 +15,50 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCES
+set (PDQSOURCES
     ./pdq/cpp/common/pdqhashtypes.cpp
     ./pdq/cpp/hashing/pdqhashing.cpp
     ./pdq/cpp/common/pdqhamming.cpp
     ./pdq/cpp/io/hashio.cpp
     ./pdq/cpp/downscaling/downscaling.cpp
     ./pdq/cpp/hashing/torben.cpp
-    ./hashing/filehasher.cpp
-    ./hashing/bufferhasher.cpp
-    ./hashing/matchTwoHash.cpp
-    ./io/vpdqio.cpp
 )
 
-SET(HEADERS
-    ./pdq/cpp/common/pdqbasetypes.h
+set (PDQHEADERS
     ./pdq/cpp/common/pdqhashtypes.h
+    ./pdq/cpp/common/pdqbasetypes.h
     ./pdq/cpp/common/pdqhamming.h
     ./pdq/cpp/hashing/pdqhashing.h
     ./pdq/cpp/io/hashio.h
     ./pdq/cpp/downscaling/downscaling.h
     ./pdq/cpp/hashing/torben.h
+)
+
+set(SOURCES
+    ./hashing/bufferhasher.cpp
+    ./hashing/filehasher.cpp
+    ./hashing/matchTwoHash.cpp
+    ./io/vpdqio.cpp
+)
+
+SET(HEADERS
+    ./hashing/bufferhasher.h
     ./hashing/filehasher.h
     ./hashing/vpdqHashType.h
-    ./hashing/bufferhasher.h
     ./hashing/matchTwoHash.h
     ./io/vpdqio.h
 )
 
-# TODO: Add more specific directories
-include_directories (
-    ../..
-)
+include_directories( ../bin ../hashing ../io ${CMAKE_SOURCE_DIR} )
 
-add_library(vpdqlib
+add_library(vpdq
     ${SOURCES}
     ${HEADERS}
+    ${PDQSOURCES}
+    ${PDQHEADERS}
 )
+
+target_include_directories(vpdq PRIVATE ${CMAKE_SOURCE_DIR})
 
 add_executable(match-hashes-byline
     bin/match-hashes-byline.cpp
@@ -66,22 +73,22 @@ add_executable(vpdq-hash-video
 )
 
 
-target_link_libraries(vpdqlib
+target_link_libraries(vpdq
     PkgConfig::LIBAV
 )
 
 target_link_libraries(match-hashes-byline
-    vpdqlib
+    vpdq
     PkgConfig::LIBAV
 )
 
 target_link_libraries(match-hashes-brute
-    vpdqlib
+    vpdq
     PkgConfig::LIBAV
 )
 
 target_link_libraries(vpdq-hash-video
-    vpdqlib
+    vpdq
     PkgConfig::LIBAV
 )
 

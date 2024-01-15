@@ -1,4 +1,6 @@
 include LICENSE.txt
 include python/README.md
 include version.txt
+graft cpp
+graft python
 include cpp/CMakeLists.txt
