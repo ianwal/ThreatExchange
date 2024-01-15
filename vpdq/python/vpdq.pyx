@@ -26,7 +26,7 @@ cdef extern from "pdq/cpp/common/pdqhashtypes.h" namespace "facebook::pdq::hashi
         char* hex_str
     )
 
-cdef extern from "hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
+cdef extern from "vpdq/cpp/hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
     cdef struct vpdqFeature:
         Hash256 pdqHash;
         int frameNumber;
@@ -34,7 +34,7 @@ cdef extern from "hashing/vpdqHashType.h" namespace "facebook::vpdq::hashing":
         double timeStamp;
 
 
-cdef extern from "hashing/filehasher.h" namespace "facebook::vpdq::hashing":
+cdef extern from "vpdq/cpp/hashing/filehasher.h" namespace "facebook::vpdq::hashing":
     bool hashVideoFile(
         string input_video_filename,
         vector[vpdqFeature]& pdqHashes,
