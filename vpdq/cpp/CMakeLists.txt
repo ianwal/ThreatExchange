@@ -16,40 +16,40 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 set(CMAKE_CXX_STANDARD 14)
 
 set (PDQSOURCES
-    ./pdq/cpp/common/pdqhashtypes.cpp
-    ./pdq/cpp/hashing/pdqhashing.cpp
-    ./pdq/cpp/common/pdqhamming.cpp
-    ./pdq/cpp/io/hashio.cpp
-    ./pdq/cpp/downscaling/downscaling.cpp
-    ./pdq/cpp/hashing/torben.cpp
+    pdq/cpp/common/pdqhashtypes.cpp
+    pdq/cpp/hashing/pdqhashing.cpp
+    pdq/cpp/common/pdqhamming.cpp
+    pdq/cpp/io/hashio.cpp
+    pdq/cpp/downscaling/downscaling.cpp
+    pdq/cpp/hashing/torben.cpp
 )
 
 set (PDQHEADERS
-    ./pdq/cpp/common/pdqhashtypes.h
-    ./pdq/cpp/common/pdqbasetypes.h
-    ./pdq/cpp/common/pdqhamming.h
-    ./pdq/cpp/hashing/pdqhashing.h
-    ./pdq/cpp/io/hashio.h
-    ./pdq/cpp/downscaling/downscaling.h
-    ./pdq/cpp/hashing/torben.h
+    pdq/cpp/common/pdqhashtypes.h
+    pdq/cpp/common/pdqbasetypes.h
+    pdq/cpp/common/pdqhamming.h
+    pdq/cpp/hashing/pdqhashing.h
+    pdq/cpp/io/hashio.h
+    pdq/cpp/downscaling/downscaling.h
+    pdq/cpp/hashing/torben.h
 )
 
 set(SOURCES
-    ./hashing/bufferhasher.cpp
-    ./hashing/filehasher.cpp
-    ./hashing/matchTwoHash.cpp
-    ./io/vpdqio.cpp
+    vpdq/cpp/hashing/bufferhasher.cpp
+    vpdq/cpp/hashing/filehasher.cpp
+    vpdq/cpp/hashing/matchTwoHash.cpp
+    vpdq/cpp/io/vpdqio.cpp
 )
 
 SET(HEADERS
-    ./hashing/bufferhasher.h
-    ./hashing/filehasher.h
-    ./hashing/vpdqHashType.h
-    ./hashing/matchTwoHash.h
-    ./io/vpdqio.h
+    vpdq/cpp/hashing/bufferhasher.h
+    vpdq/cpp/hashing/filehasher.h
+    vpdq/cpp/hashing/vpdqHashType.h
+    vpdq/cpp/hashing/matchTwoHash.h
+    vpdq/cpp/io/vpdqio.h
 )
 
-include_directories( ../bin ../hashing ../io ${CMAKE_SOURCE_DIR} )
+include_directories( vpdq/cpp/bin vpdq/cpp/hashing vpdq/cpp/io ${CMAKE_SOURCE_DIR} )
 
 add_library(vpdq
     ${SOURCES}
@@ -61,15 +61,15 @@ add_library(vpdq
 target_include_directories(vpdq PRIVATE ${CMAKE_SOURCE_DIR})
 
 add_executable(match-hashes-byline
-    bin/match-hashes-byline.cpp
+    vpdq/cpp/bin/match-hashes-byline.cpp
 )
 
 add_executable(match-hashes-brute
-    bin/match-hashes-brute.cpp
+    vpdq/cpp/bin/match-hashes-brute.cpp
 )
 
 add_executable(vpdq-hash-video
-    bin/vpdq-hash-video.cpp
+    vpdq/cpp/bin/vpdq-hash-video.cpp
 )
 
 
