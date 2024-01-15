@@ -1,6 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-import setuptools
+from setuptools import setup
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 import sys
@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 import logging
 import shutil
+from typing import List
 
 logger = logging.getLogger("setup.py")
 logger.setLevel(logging.INFO)
@@ -20,8 +21,8 @@ cpp_build_dir = cpp_dir / "build"
 cython_path = DIR / "python/vpdq.cpp"
 libraries_dirs_path = cpp_dir / "libraries-dirs.txt"
 
-lib_dirs: list[str] = []
-include_dirs: list[str] = [str(DIR), str(DIR.parent), str(DIR / "cpp")]
+lib_dirs: List[str] = []
+include_dirs: List[str] = [str(DIR), str(DIR.parent), str(DIR / "cpp")]
 
 
 def make_clean():
@@ -96,7 +97,7 @@ def get_version():
     return version
 
 
-setuptools.setup(
+setup(
     version=get_version(),
     cmdclass={"build_ext": build_ext},
     ext_modules=EXTENSIONS,
