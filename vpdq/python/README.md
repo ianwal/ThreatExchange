@@ -9,25 +9,36 @@ Windows is currently not supported by the Cython bindings.
 
 ## Installation
 
-#### Install using PIP from [PyPI](https://pypi.org/project/vpdq/)
+Install from [PyPI](https://pypi.org/project/vpdq/)
 
 ```sh
 python -m pip install vpdq --upgrade
 ```
 
+####  OR
+
+Install locally (run from root vpdq folder):
+
+```sh
+python -m pip install -e .
+```
+
+You should now be able to run `python -c "import vpdq"` without error.
+
 ### Usage
 ```py
 import vpdq
 
-vpdqFeatures = vpdq.computeHash("my_video.mp4")
-
-# An video's hash is composed of a list of vpdqFeatures
+# A vpdq hash is a list of vpdqFeatures.
+#
 # Each vpdqFeature has five attributes:
 # quality: int
 # frame_number: int
 # hash: Hash256 (Video frame hashed by PDQ) 
 # hex: str (64 digit hex string representation of hash)
 # timestamp: double
+
+vpdqFeatures = vpdq.computeHash("my_video.mp4")
 
 for feature in vpdqFeatures:
     print(f"{feature.frame_number},{feature.hex},{feature.quality},{feature.timestamp}")
@@ -43,47 +54,5 @@ Sample Output:
 ```
 
 ## Development
-### Dependencies
-All dependencies from the CPP implementation are required to build the binding. See [README](../README.md) for more information.
 
-Creating a [venv](https://docs.python.org/3/library/venv.html) is optional, but recommended during development. 
-
-### Local install
-
-In `vpdq/`:
-```sh
-python install -e .
-```
-
-You should now be able to run `python -c "import vpdq"` without error.
-
-### Tests
-
-The tests use sample videos from `ThreatExchange/tmk/sample-videos`
-
-Run the tests:
-```sh
-python -m pip install pytest
-python -m pytest
-```
-
-### Distribution
-
-[build](https://github.com/pypa/build) is used for packaging and building wheels.
-
-In `vpdq/`:
-
-Install dependencies:
-```sh
-python -m pip install -r packaging-requirements.txt
-```
-
-Build package (output will be in `dist/`):
-```sh
-python -m build --sdist 
-```
-
-Build wheel (output will be in `dist/`):
-```sh
-python -m build --wheel
-```
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for development instructions.

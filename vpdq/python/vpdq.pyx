@@ -68,7 +68,7 @@ class VpdqFeature:
 
 
 def hash_to_hex(hash_value: Hash256) -> str:
-    """Convect from pdq hash to hex str
+    """Convert from pdq hash to hex str
 
     Args:
         hash_value

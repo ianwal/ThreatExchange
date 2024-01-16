@@ -1,6 +1,8 @@
 include LICENSE.txt
-include python/README.md
 include version.txt
+include requirements.txt
+include README.md
 graft cpp
 graft python
-include cpp/CMakeLists.txt
+prune cpp/build
+exclude cpp/libraries-dirs.txt
