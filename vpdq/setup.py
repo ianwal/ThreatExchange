@@ -16,27 +16,38 @@ logging.basicConfig()
 
 DIR = Path(__file__).parent
 
-cpp_dir = DIR / "cpp"
-cpp_build_dir = cpp_dir / "build"
-cython_cpp_path = DIR / "python/vpdq.cpp"
-cython_pyx_path = DIR / "python/vpdq.pyx"
-libraries_dirs_path = cpp_dir / "libraries-dirs.txt"
+CPP_DIR = DIR / "cpp"
+CPP_BUILD_DIR = CPP_DIR / "build"
+CYTHON_CPP_PATH = DIR / "python/vpdq.cpp"
+CYTHON_PYX_PATH = DIR / "python/vpdq.pyx"
+LIBVPDQ_PATH = CPP_BUILD_DIR / "libvpdq.a"
+LIBRARIES_DIRS_PATH = CPP_DIR / "libraries-dirs.txt"
 
 lib_dirs: List[str] = []
-include_dirs: List[str] = [str(DIR), str(DIR.parent), str(DIR / "cpp")]
+include_dirs: List[str] = [str(CPP_DIR)]
+libav_libraries: List[str]= [
+    "avdevice",
+    "avfilter",
+    "avformat",
+    "avcodec",
+    "swresample",
+    "swscale",
+    "avutil",
+]
+libraries: List[str] = libav_libraries
 
 
-def make_clean():
+def make_clean() -> None:
     """Remove CMake and Cython build files from previous runs."""
-    logger.info(f"Removing CPP build directory {cpp_build_dir}...")
-    if Path.exists(cpp_build_dir):
-        shutil.rmtree(cpp_build_dir)
+    logger.info(f"Removing CPP build directory {CPP_BUILD_DIR}...")
+    if Path.exists(CPP_BUILD_DIR):
+        shutil.rmtree(CPP_BUILD_DIR)
 
-    logger.info(f"Removing compiled Cython files {cython_cpp_path}...")
-    Path.unlink(cython_cpp_path, missing_ok=True)
+    logger.info(f"Removing compiled Cython files {CYTHON_CPP_PATH}...")
+    Path.unlink(CYTHON_CPP_PATH, missing_ok=True)
 
-    logger.info(f"Removing libraries-dir.txt file {libraries_dirs_path}...")
-    Path.unlink(libraries_dirs_path, missing_ok=True)
+    logger.info(f"Removing libraries-dir.txt file {LIBRARIES_DIRS_PATH}...")
+    Path.unlink(LIBRARIES_DIRS_PATH, missing_ok=True)
 
 
 class build_ext(build_ext):
@@ -45,12 +56,12 @@ class build_ext(build_ext):
         try:
             make_clean()
             logger.info("Creating CPP build directory...")
-            Path.mkdir(cpp_build_dir, exist_ok=True)
+            Path.mkdir(CPP_BUILD_DIR, exist_ok=True)
 
             logger.info("Running CMake...")
             cmake_proc = subprocess.run(
-                ["cmake", f"{cpp_dir}"],
-                cwd=cpp_build_dir,
+                ["cmake", f"{CPP_DIR}"],
+                cwd=CPP_BUILD_DIR,
                 check=True,
                 capture_output=True,
             )
@@ -58,12 +69,12 @@ class build_ext(build_ext):
 
             logger.info("Compiling libvpdq with Make...")
             make_proc = subprocess.run(
-                ["make"], cwd=cpp_build_dir, check=True, capture_output=True
+                ["make"], cwd=CPP_BUILD_DIR, check=True, capture_output=True
             )
             logger.info(str(make_proc.stdout, "utf-8"))
 
             # Add the directories of required libraries that are found from CMake to lib_dirs
-            with open(libraries_dirs_path, "r") as file:
+            with open(LIBRARIES_DIRS_PATH, "r") as file:
                 lib_dirs = [line.strip() for line in file]
 
         except subprocess.CalledProcessError as e:
@@ -76,18 +87,10 @@ class build_ext(build_ext):
 EXTENSIONS = [
     Extension(
         name="vpdq",
-        sources=[str(cython_pyx_path)],
+        sources=[str(CYTHON_PYX_PATH)],
         language="c++",
-        libraries=[
-            "avdevice",
-            "avfilter",
-            "avformat",
-            "avcodec",
-            "swresample",
-            "swscale",
-            "avutil",
-        ],
-        extra_objects=[str(cpp_build_dir / "libvpdq.a")],
+        libraries=libraries,
+        extra_objects=[str(LIBVPDQ_PATH)],
         library_dirs=lib_dirs,
         include_dirs=include_dirs,
     )
