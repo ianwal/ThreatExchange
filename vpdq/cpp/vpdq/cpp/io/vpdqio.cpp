@@ -32,7 +32,7 @@ namespace io {
 const int TIMESTAMP_OUTPUT_PRECISION = 3;
 
 bool loadHashesFromFileOrDie(
-    const string& inputHashFileName,
+    const std::string& inputHashFileName,
     std::vector<hashing::vpdqFeature>& pdqHashes) {
   std::ifstream inputfp(inputHashFileName);
   if (!inputfp) {

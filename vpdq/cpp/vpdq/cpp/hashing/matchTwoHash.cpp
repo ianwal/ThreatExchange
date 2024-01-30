@@ -8,10 +8,15 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
+#include <algorithm>
+
 namespace facebook {
 namespace vpdq {
 namespace hashing {
 
+using vpdq::hashing::vpdqFeature;
+
+namespace {
 /**
  * @brief Filter low quality hashes from a feature vector
  *
@@ -23,11 +28,12 @@ namespace hashing {
  * @return Feature vector without features with quality lower than
  * qualityTolerance
  */
-static std::vector<vpdq::hashing::vpdqFeature> filterFeatures(
-    const std::vector<vpdq::hashing::vpdqFeature>& features,
+std::vector<vpdqFeature> filterFeatures(
+    const std::vector<vpdqFeature>& features,
     const int qualityTolerance,
     const bool verbose) {
-  std::vector<vpdq::hashing::vpdqFeature> filteredHashes;
+  std::vector<vpdqFeature> filteredHashes;
+  filteredHashes.reserve(features.size());
   for (const auto& feature : features) {
     if (feature.quality >= qualityTolerance) {
       filteredHashes.push_back(feature);
@@ -52,32 +58,38 @@ static std::vector<vpdq::hashing::vpdqFeature> filterFeatures(
  *
  * @return Number of matches
  */
-static std::vector<vpdq::hashing::vpdqFeature>::size_type findMatches(
-    const std::vector<vpdq::hashing::vpdqFeature>& features1,
-    const std::vector<vpdq::hashing::vpdqFeature>& features2,
+std::vector<vpdqFeature>::size_type findMatches(
+    const std::vector<vpdqFeature>& features1,
+    const std::vector<vpdqFeature>& features2,
     const int distanceTolerance,
     const bool verbose) {
   unsigned int matchCnt = 0;
   for (const auto& feature1 : features1) {
-    for (const auto& feature2 : features2) {
-      if (feature1.pdqHash.hammingDistance(feature2.pdqHash) <
-          distanceTolerance) {
-        matchCnt++;
-        if (verbose) {
-          std::cout << "Query Hash: " << feature1.pdqHash.format()
-                    << " Target Hash: " << feature2.pdqHash.format()
-                    << " match " << std::endl;
-        }
-        break;
+    auto const is_quality = [feature1,
+                             distanceTolerance](const vpdqFeature& feature2) {
+      return feature1.pdqHash.hammingDistance(feature2.pdqHash) <
+          distanceTolerance;
+    };
+
+    auto const feature2_it =
+        std::find_if(std::begin(features2), std::end(features2), is_quality);
+
+    if (feature2_it != std::end(features2)) {
+      ++matchCnt;
+      if (verbose) {
+        std::cout << "Query Hash: " << feature1.pdqHash.format()
+                  << " Target Hash: " << feature2_it->pdqHash.format()
+                  << " match " << std::endl;
       }
     }
   }
   return matchCnt;
 }
+} // namespace
 
 bool matchTwoHashBrute(
-    std::vector<vpdq::hashing::vpdqFeature> qHashes,
-    std::vector<vpdq::hashing::vpdqFeature> tHashes,
+    const std::vector<vpdqFeature>& qHashes,
+    const std::vector<vpdqFeature>& tHashes,
     const int distanceTolerance,
     const int qualityTolerance,
     double& qMatch,
@@ -97,6 +109,7 @@ bool matchTwoHashBrute(
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
   return true;
 }
+
 } // namespace hashing
 } // namespace vpdq
 } // namespace facebook

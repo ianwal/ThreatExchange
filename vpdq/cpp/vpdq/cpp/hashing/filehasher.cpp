@@ -4,13 +4,11 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cassert>
 #include <cmath>
 #include <condition_variable>
 #include <cstdio>
 #include <fstream>
 #include <functional>
-#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -36,11 +34,10 @@ namespace facebook {
 namespace vpdq {
 namespace hashing {
 
+namespace {
+
 // Pixel format for the image passed to PDQ
 constexpr AVPixelFormat PIXEL_FORMAT = AV_PIX_FMT_RGB24;
-
-// Downsample method for the image passed to PDQ
-constexpr int DOWNSAMPLE_METHOD = SWS_AREA;
 
 // Smart pointer wrapper for AVFrame*
 struct AVFrameDeleter {
@@ -75,7 +72,7 @@ using AVFramePtr = std::unique_ptr<AVFrame, AVFrameDeleter>;
 using AVPacketPtr = std::unique_ptr<AVPacket, AVPacketDeleter>;
 using SwsContextPtr = std::unique_ptr<SwsContext, SwsContextDeleter>;
 
-/* @brief Writes an AVFrame to a file
+/* @brief Write an AVFrame to a file.
  *
  * Useful for debugging.
  * Not used by any other functions.
@@ -88,28 +85,23 @@ using SwsContextPtr = std::unique_ptr<SwsContext, SwsContextDeleter>;
  * @param filename
  * @return void
  */
-static void saveFrameToFile(AVFrame* frame, const char* filename) {
-  if (!frame) {
-    throw std::invalid_argument("Cannot save frame to file. Frame is null.");
-  }
-
+void saveFrameToFile(const AVFrame& frame, const std::string& filename) {
   std::ofstream outfile(filename, std::ios::out | std::ios::binary);
   if (!outfile) {
-    throw std::runtime_error(
-        "Cannot save frame to file " + std::string(filename));
+    throw std::runtime_error("Cannot save frame to file " + filename);
   }
 
-  for (int y = 0; y < frame->height; y++) {
+  for (int y = 0; y < frame.height; y++) {
     outfile.write(
-        reinterpret_cast<const char*>(frame->data[0] + y * frame->linesize[0]),
-        frame->width * 3);
+        reinterpret_cast<const char*>(frame.data[0] + y * frame.linesize[0]),
+        frame.width * 3 /*color channels*/);
   }
   std::cout << "Saved frame to file " << filename << " with dimensions "
-            << frame->width << "x" << frame->height << std::endl;
+            << frame.width << "x" << frame.height << std::endl;
   outfile.close();
 }
 
-static AVFramePtr createTargetFrame(int width, int height) {
+AVFramePtr createTargetFrame(int width, int height) {
   // Create a frame for resizing and converting the decoded frame to RGB24
   AVFramePtr frame(av_frame_alloc());
   if (frame.get() == nullptr) {
@@ -149,7 +141,7 @@ class AVVideo {
   int height;
   double frameRate;
 
-  AVVideo(const std::string filename) {
+  explicit AVVideo(const std::string& filename) {
     // Open the input file
     AVFormatContext* formatContextRawPtr = nullptr;
     if (avformat_open_input(
@@ -234,6 +226,9 @@ class AVVideo {
   }
 
   void createSwsContext() {
+    // Downsample method for the image passed to PDQ
+    constexpr int DOWNSAMPLE_METHOD = SWS_AREA;
+
     swsContext = SwsContextPtr(sws_getContext(
         codecContext->width,
         codecContext->height,
@@ -257,6 +252,8 @@ class vpdqHasher {
   struct FatFrame {
     AVFramePtr frame;
     int64_t frameNumber;
+    FatFrame(AVFramePtr frame, int64_t frameNumber)
+        : frame(std::move(frame)), frameNumber(frameNumber){};
   };
 
   std::condition_variable queue_condition;
@@ -316,7 +313,7 @@ class vpdqHasher {
 
     // Send the packet to the decoder
     int ret = avcodec_send_packet(video->codecContext.get(), packet.get()) < 0;
-    if (ret < 0) {
+    if (ret != 0) {
       throw std::runtime_error("Cannot send packet to decoder");
     }
 
@@ -347,14 +344,13 @@ class vpdqHasher {
             targetFrame->data,
             targetFrame->linesize);
 
-        FatFrame fatFrame{std::move(targetFrame), get_frame_number()};
         // Use the queue if multithreaded
         if (thread_count != 1) {
           std::lock_guard<std::mutex> lock(queue_mutex);
-          hash_queue.push(std::move(fatFrame));
+          hash_queue.emplace(std::move(targetFrame), get_frame_number());
           queue_condition.notify_one();
         } else {
-          hasher(std::move(fatFrame));
+          hasher({std::move(targetFrame), get_frame_number()});
         }
       }
     }
@@ -365,8 +361,6 @@ class vpdqHasher {
   }
 
   void hasher(const FatFrame fatFrame) {
-    assert(fatFrame.frame->height != 0 && fatFrame.frame->width != 0);
-
     auto phasher = vpdq::hashing::FrameBufferHasherFactory::createFrameHasher(
         fatFrame.frame->height, fatFrame.frame->width);
 
@@ -390,11 +384,11 @@ class vpdqHasher {
 
     // Append vpdq feature to pdqHashes vector
     std::lock_guard<std::mutex> lock(pdqHashes_mutex);
-    pdqHashes.emplace_back(vpdqFeature{
-        pdqHash,
-        static_cast<int>(fatFrame.frameNumber),
-        quality,
-        static_cast<double>(fatFrame.frameNumber) / video->frameRate});
+    pdqHashes.push_back(
+        {pdqHash,
+         static_cast<int>(fatFrame.frameNumber),
+         quality,
+         static_cast<double>(fatFrame.frameNumber) / video->frameRate});
   }
 
   void consumer() {
@@ -404,7 +398,7 @@ class vpdqHasher {
           lock, [this] { return !hash_queue.empty() || done_hashing; });
       if (hash_queue.empty() && done_hashing)
         break;
-      FatFrame fatFrame(std::move(hash_queue.front()));
+      auto fatFrame = std::move(hash_queue.front());
       hash_queue.pop();
       lock.unlock();
       hasher(std::move(fatFrame));
@@ -418,15 +412,17 @@ class vpdqHasher {
   // This signals to the threads that no more
   // frames will be hashed and they can exit
   void finish() {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    done_hashing = true;
-    lock.unlock();
+    {
+      std::lock_guard<std::mutex> lock(queue_mutex);
+      done_hashing = true;
+    }
     queue_condition.notify_all();
     for (auto& thread : consumer_threads) {
       thread.join();
     }
   }
 };
+} // namespace
 
 // Get pdq hashes for selected frames every secondsPerHash
 bool hashVideoFile(
@@ -462,12 +458,8 @@ bool hashVideoFile(
 
   // If downsampleWidth or downsampleHeight is 0,
   // then use the video's original dimensions
-  if (downsampleWidth > 0) {
-    video->width = downsampleWidth;
-  }
-  if (downsampleHeight > 0) {
-    video->height = downsampleHeight;
-  }
+  video->width = (downsampleWidth == 0) ? video->width : downsampleWidth;
+  video->height = (downsampleHeight == 0) ? video->height : downsampleHeight;
 
   // Create image rescaler context
   try {
@@ -481,12 +473,10 @@ bool hashVideoFile(
   // Create frame hasher
   vpdqHasher hasher(std::move(video), pdqHashes, thread_count);
   hasher.verbose = verbose;
-  hasher.frameMod = secondsPerHash * hasher.video->frameRate;
-  if (hasher.frameMod == 0) {
-    // Avoid truncate to zero on corner-case where
-    // secondsPerHash = 1 and frameRate < 1.
-    hasher.frameMod = 1;
-  }
+  auto const frameMod = secondsPerHash * hasher.video->frameRate;
+  // Avoid truncate to zero on corner-case where
+  // secondsPerHash = 1 and frameRate < 1.
+  hasher.frameMod = (frameMod == 0) ? 1 : frameMod;
 
   // Create packet used to read frames
   // The packet is moved into processPacket() in order
