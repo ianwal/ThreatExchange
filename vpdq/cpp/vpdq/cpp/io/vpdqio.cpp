@@ -43,28 +43,33 @@ bool loadHashesFromFileOrDie(
   std::string str;
   while (std::getline(inputfp, str)) {
     std::vector<std::string> frameValues;
-    std::stringstream ss(str);
 
-    while (ss.good()) {
-      std::string substr;
-      std::getline(ss, substr, ',');
-      frameValues.push_back(substr);
+    {
+      std::stringstream ss(str);
+      while (ss.good()) {
+        std::string substr;
+        std::getline(ss, substr, ',');
+        frameValues.push_back(std::move(substr));
+      }
     }
 
     if (frameValues.size() != 4) {
       std::cerr << "Wrong format of hash: " << str << std::endl;
       return false;
     }
-    pdqHashes.push_back(
-        {pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
-         std::atoi(frameValues[0].c_str()),
-         std::atoi(frameValues[1].c_str()),
-         std::atof(frameValues[3].c_str())});
+
+    pdqHashes.push_back(std::move(hashing::vpdqFeature{
+        pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
+        std::atoi(frameValues[0].c_str()),
+        std::atoi(frameValues[1].c_str()),
+        std::atof(frameValues[3].c_str())}));
   }
-  if (pdqHashes.size() == 0) {
+
+  if (pdqHashes.empty()) {
     std::cerr << "Empty hash file " << inputHashFileName << std::endl;
     return false;
   }
+
   return true;
 }
 
@@ -78,13 +83,14 @@ bool outputVPDQFeatureToFile(
     return false;
   }
 
+  constexpr int TIMESTAMP_OUTPUT_PRECISION = 3;
   // Write feature to output file
   for (const auto& s : pdqHashes) {
     outfile << s.frameNumber;
     outfile << ",";
     outfile << s.quality;
     outfile << ",";
-    outfile << s.pdqHash.format().c_str();
+    outfile << s.pdqHash.format();
     outfile << ",";
     outfile << std::setprecision(TIMESTAMP_OUTPUT_PRECISION) << std::fixed
             << s.timeStamp;
