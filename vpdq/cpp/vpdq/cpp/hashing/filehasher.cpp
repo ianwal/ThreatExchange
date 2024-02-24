@@ -97,7 +97,7 @@ void saveFrameToFile(const AVFrame& frame, const std::string& filename) {
         frame.width * 3 /*color channels*/);
   }
   std::cout << "Saved frame to file " << filename << " with dimensions "
-            << frame.width << "x" << frame.height << std::endl;
+            << frame.width << "x" << frame.height << '\n';
   outfile.close();
 }
 
@@ -114,6 +114,26 @@ AVFramePtr createTargetFrame(int width, int height) {
     throw std::bad_alloc();
   }
   return frame;
+}
+
+SwsContextPtr createSwsContext(
+    AVCodecContext const& codecContext, int width, int height) {
+  // Downsample method for the image passed to PDQ
+  constexpr auto DOWNSAMPLE_METHOD = SWS_AREA;
+
+  SwsContextPtr swsContext{sws_getContext(
+      codecContext.width,
+      codecContext.height,
+      codecContext.pix_fmt,
+      width,
+      height,
+      PIXEL_FORMAT,
+      DOWNSAMPLE_METHOD,
+      nullptr,
+      nullptr,
+      nullptr)};
+
+  return swsContext;
 }
 
 class AVVideo {
@@ -219,27 +239,6 @@ class AVVideo {
         static_cast<double>(avframeRate.den);
     if (frameRate == 0) {
       throw std::runtime_error("Video framerate is zero");
-    }
-  }
-
-  void createSwsContext() {
-    // Downsample method for the image passed to PDQ
-    constexpr int DOWNSAMPLE_METHOD = SWS_AREA;
-
-    swsContext = SwsContextPtr(sws_getContext(
-        codecContext->width,
-        codecContext->height,
-        codecContext->pix_fmt,
-        width,
-        height,
-        PIXEL_FORMAT,
-        DOWNSAMPLE_METHOD,
-        nullptr,
-        nullptr,
-        nullptr));
-
-    if (swsContext.get() == nullptr) {
-      throw std::runtime_error("Cannot create sws context");
     }
   }
 };
@@ -366,7 +365,7 @@ class vpdqHasher {
               " Frame width or height smaller than the minimum hashable dimension"));
     }
     if (verbose) {
-      std::cout << "PDQHash: " << pdqHash.format() << std::endl;
+      std::cout << "PDQHash: " << pdqHash.format() << '\n';
     }
 
     // Write frame to file here for debugging:
@@ -449,26 +448,24 @@ bool hashVideoFile(
     video = std::make_unique<AVVideo>(inputVideoFileName);
   } catch (const std::runtime_error& e) {
     std::cerr << "Error while attempting to read video file: " << e.what()
-              << std::endl;
+              << '\n';
     return false;
   }
 
   // If wanted dimension is 0, then use the original dimensions.
-  // If wanted dimension is negative or greater than the actual dimension, use the original dimensions.
-  // Otherwise use the wanted dimension.
-  auto const calculate_dimension = [](const int actual_dimension, const int dimension){
+  // If wanted dimension is negative or greater than the actual dimension, use
+  // the original dimensions. Otherwise use the wanted dimension.
+  auto const calculate_dimension = [](const int actual_dimension,
+                                      const int dimension) {
     int result;
 
-    if(dimension <= 0)
-    {
+    if (dimension <= 0) {
       result = actual_dimension;
-    } else if(dimension > actual_dimension)
-    {
-      // Dimension should not be larger than the actual dimension (no upscaling).
+    } else if (dimension > actual_dimension) {
+      // Dimension should not be larger than the actual dimension (no
+      // upscaling).
       result = actual_dimension;
-    }
-    else
-    {
+    } else {
       result = dimension;
     }
 
@@ -479,12 +476,15 @@ bool hashVideoFile(
   video->height = calculate_dimension(video->height, downsampleHeight);
 
   // Create image rescaler context
-  try {
-    video->createSwsContext();
-  } catch (const std::runtime_error& e) {
-    std::cerr << "Error while attempting to create sws context: " << e.what()
-              << std::endl;
-    return false;
+  {
+    auto swsContext = createSwsContext(
+        *(video->codecContext.get()), video->width, video->height);
+    if (swsContext.get() == nullptr) {
+      std::cerr << "Error while attempting to create sws context.\n";
+      return false;
+    }
+
+    video->swsContext = std::move(swsContext);
   }
 
   // Create frame hasher
@@ -500,7 +500,7 @@ bool hashVideoFile(
   // to reuse the same packet for each frame to avoid allocs
   AVPacketPtr packet(av_packet_alloc());
   if (packet.get() == nullptr) {
-    std::cerr << "Cannot allocate packet" << std::endl;
+    std::cerr << "Cannot allocate packet" << '\n';
     return false;
   }
 
@@ -511,7 +511,7 @@ bool hashVideoFile(
     try {
       packet = hasher.processPacket(std::move(packet));
     } catch (const std::runtime_error& e) {
-      std::cerr << "Processing frame failed: " << e.what() << std::endl;
+      std::cerr << "Processing frame failed: " << e.what() << '\n';
       failed = true;
       break;
     }
@@ -525,7 +525,7 @@ bool hashVideoFile(
     try {
       hasher.processPacket(std::move(packet));
     } catch (const std::runtime_error& e) {
-      std::cerr << "Flushing frame buffer failed: " << e.what() << std::endl;
+      std::cerr << "Flushing frame buffer failed: " << e.what() << '\n';
       failed = true;
     }
   }
