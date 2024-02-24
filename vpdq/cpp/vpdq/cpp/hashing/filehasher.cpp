@@ -103,10 +103,7 @@ void saveFrameToFile(const AVFrame& frame, const std::string& filename) {
 
 AVFramePtr createTargetFrame(int width, int height) {
   // Create a frame for resizing and converting the decoded frame to RGB24
-  AVFramePtr frame(av_frame_alloc());
-  if (frame.get() == nullptr) {
-    throw std::bad_alloc();
-  }
+  AVFramePtr frame{av_frame_alloc()};
 
   frame->format = PIXEL_FORMAT;
   frame->width = width;
@@ -327,13 +324,7 @@ class vpdqHasher {
       }
 
       if (get_frame_number() % frameMod == 0) {
-        AVFramePtr targetFrame;
-        try {
-          targetFrame = createTargetFrame(video->width, video->height);
-        } catch (const std::runtime_error& e) {
-          std::cerr << e.what() << std::endl;
-          throw;
-        }
+        AVFramePtr targetFrame = createTargetFrame(video->width, video->height);
         // Resize the frame and convert to RGB24
         sws_scale(
             video->swsContext.get(),
@@ -361,7 +352,7 @@ class vpdqHasher {
   }
 
   void hasher(const FatFrame fatFrame) {
-    auto phasher = vpdq::hashing::FrameBufferHasherFactory::createFrameHasher(
+    auto phasher = FrameBufferHasherFactory::createFrameHasher(
         fatFrame.frame->height, fatFrame.frame->width);
 
     int quality;
@@ -384,11 +375,11 @@ class vpdqHasher {
 
     // Append vpdq feature to pdqHashes vector
     std::lock_guard<std::mutex> lock(pdqHashes_mutex);
-    pdqHashes.push_back(
-        {pdqHash,
-         static_cast<int>(fatFrame.frameNumber),
-         quality,
-         static_cast<double>(fatFrame.frameNumber) / video->frameRate});
+    pdqHashes.push_back(std::move(vpdqFeature{
+        pdqHash,
+        static_cast<int>(fatFrame.frameNumber),
+        quality,
+        static_cast<double>(fatFrame.frameNumber) / video->frameRate}));
   }
 
   void consumer() {
@@ -405,7 +396,7 @@ class vpdqHasher {
     }
   }
 
-  inline int64_t get_frame_number() {
+  int64_t get_frame_number() const {
     return video->codecContext->frame_number - 1;
   }
 

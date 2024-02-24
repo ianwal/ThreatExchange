@@ -87,7 +87,7 @@ std::vector<vpdqFeature>::size_type findMatches(
 }
 } // namespace
 
-bool matchTwoHashBrute(
+void matchTwoHashBrute(
     const std::vector<vpdqFeature>& qHashes,
     const std::vector<vpdqFeature>& tHashes,
     const int distanceTolerance,
@@ -96,18 +96,18 @@ bool matchTwoHashBrute(
     double& tMatch,
     const bool verbose) {
   // Filter low quality hashes
-  auto queryFiltered = filterFeatures(qHashes, qualityTolerance, verbose);
-  auto targetFiltered = filterFeatures(tHashes, qualityTolerance, verbose);
+  const auto queryFiltered = filterFeatures(qHashes, qualityTolerance, verbose);
+  const auto targetFiltered =
+      filterFeatures(tHashes, qualityTolerance, verbose);
 
   // Get count of query in target and target in query
-  auto qMatchCnt =
+  const auto qMatchCnt =
       findMatches(queryFiltered, targetFiltered, distanceTolerance, verbose);
-  auto tMatchCnt =
+  const auto tMatchCnt =
       findMatches(targetFiltered, queryFiltered, distanceTolerance, verbose);
 
   qMatch = (qMatchCnt * 100.0) / queryFiltered.size();
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
-  return true;
 }
 
 } // namespace hashing

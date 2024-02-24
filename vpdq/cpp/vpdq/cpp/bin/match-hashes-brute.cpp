@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   }
   double qMatch = 0;
   double tMatch = 0;
-  ret = facebook::vpdq::hashing::matchTwoHashBrute(
+  facebook::vpdq::hashing::matchTwoHashBrute(
       qHashes,
       tHashes,
       distanceTolerance,
@@ -65,9 +65,6 @@ int main(int argc, char** argv) {
       qMatch,
       tMatch,
       verbose);
-  if (!ret) {
-    return EXIT_FAILURE;
-  }
   // Print float with 2 decimal places
   printf("%0.2f Percentage Query Video match\n", qMatch);
   printf("%0.2f Percentage Target Video match\n", tMatch);

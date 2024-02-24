@@ -11,6 +11,7 @@
 namespace facebook {
 namespace vpdq {
 namespace hashing {
+
 /**
  * Compare two vpdq hash vectors in brute-force.
  * Result in two double percentages: qMatch, tMatch
@@ -23,13 +24,11 @@ namespace hashing {
  * @param qMatch Percentage of matches in query hash
  * @param tMatch Percentage of matches in target hash
  * @param verbose If produce detailed output for diagnostic purposes
- * @param programName The name of executable program which invokes the function
  *
- * @return If successfully hash the video
  */
-bool matchTwoHashBrute(
-    const std::vector<vpdq::hashing::vpdqFeature>& qHashes,
-    const std::vector<vpdq::hashing::vpdqFeature>& tHashes,
+void matchTwoHashBrute(
+    const std::vector<vpdqFeature>& qHashes,
+    const std::vector<vpdqFeature>& tHashes,
     const int distanceTolerance,
     const int qualityTolerance,
     double& qMatch,

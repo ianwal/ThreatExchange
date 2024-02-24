@@ -3,7 +3,6 @@
 // ================================================================
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -16,20 +15,22 @@ namespace facebook {
 namespace vpdq {
 namespace hashing {
 
-const int MIN_HASHABLE_DIM = 5;
-
 // ----------------------------------------------------------------
 bool PDQFrameBufferHasher::hashFrame(
-    unsigned char* buffer,
+    unsigned char* buffer, // The PDQ hash buffer
     pdq::hashing::Hash256& hash, // The result pdq hash
     int& quality // Hashing Quality
 ) {
+  constexpr int MIN_HASHABLE_DIM{5};
+
+  // If the frame dimensions are too small, clear the hash and return early.
   if (_frameHeight < MIN_HASHABLE_DIM || _frameWidth < MIN_HASHABLE_DIM) {
     hash.clear();
     quality = 0;
     return false;
   }
-  facebook::pdq::hashing::fillFloatLumaFromRGB(
+
+  pdq::hashing::fillFloatLumaFromRGB(
       &buffer[0], // pRbase
       &buffer[1], // pGbase
       &buffer[2], // pBbase
@@ -39,7 +40,12 @@ bool PDQFrameBufferHasher::hashFrame(
       3, // colStride
       _fullLumaImageBuffer1.data());
 
-  facebook::pdq::hashing::pdqHash256FromFloatLuma(
+  // PDQ Buffers
+  float _buffer64x64[64][64];
+  float _buffer16x64[16][64];
+  float _buffer16x16[16][16];
+
+  pdq::hashing::pdqHash256FromFloatLuma(
       _fullLumaImageBuffer1.data(), // numRows x numCols, row-major
       _fullLumaImageBuffer2.data(), // numRows x numCols, row-major
       _frameHeight,
@@ -53,16 +59,15 @@ bool PDQFrameBufferHasher::hashFrame(
   return true;
 }
 
-int FrameBufferHasherFactory::getFrameHasherDownscaleDimension() {
-  return PDQFrameBufferHasher::getFrameDownscaleDimension();
-  ;
-}
+namespace FrameBufferHasherFactory {
 
 // ----------------------------------------------------------------
-std::unique_ptr<AbstractFrameBufferHasher>
-FrameBufferHasherFactory::createFrameHasher(int frameHeight, int frameWidth) {
+std::unique_ptr<AbstractFrameBufferHasher> createFrameHasher(
+    const int frameHeight, const int frameWidth) {
   return std::make_unique<PDQFrameBufferHasher>(frameHeight, frameWidth);
 }
+
+} // namespace FrameBufferHasherFactory
 
 } // namespace hashing
 } // namespace vpdq
