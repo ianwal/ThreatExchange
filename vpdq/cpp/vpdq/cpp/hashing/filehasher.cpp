@@ -415,6 +415,12 @@ class vpdqHasher {
 };
 } // namespace
 
+bool hashVideoFile(
+    const std::string& inputVideoFileName,
+    std::vector<hashing::vpdqFeature>& pdqHashes) {
+  return hashVideoFile(inputVideoFileName, pdqHashes, false, 1.0, 0, 0, 0);
+}
+
 // Get pdq hashes for selected frames every secondsPerHash
 bool hashVideoFile(
     const std::string& inputVideoFileName,
@@ -447,10 +453,30 @@ bool hashVideoFile(
     return false;
   }
 
-  // If downsampleWidth or downsampleHeight is 0,
-  // then use the video's original dimensions
-  video->width = (downsampleWidth == 0) ? video->width : downsampleWidth;
-  video->height = (downsampleHeight == 0) ? video->height : downsampleHeight;
+  // If wanted dimension is 0, then use the original dimensions.
+  // If wanted dimension is negative or greater than the actual dimension, use the original dimensions.
+  // Otherwise use the wanted dimension.
+  auto const calculate_dimension = [](const int actual_dimension, const int dimension){
+    int result;
+
+    if(dimension <= 0)
+    {
+      result = actual_dimension;
+    } else if(dimension > actual_dimension)
+    {
+      // Dimension should not be larger than the actual dimension (no upscaling).
+      result = actual_dimension;
+    }
+    else
+    {
+      result = dimension;
+    }
+
+    return result;
+  };
+
+  video->width = calculate_dimension(video->width, downsampleWidth);
+  video->height = calculate_dimension(video->height, downsampleHeight);
 
   // Create image rescaler context
   try {

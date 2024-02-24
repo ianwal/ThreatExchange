@@ -19,6 +19,21 @@ namespace hashing {
  * Get frames from the video
  * Then get pdq hashes for selected frames every secondPerHash
  *
+ * @param inputVideoFileName Input video file name.
+ * @param pdqHashes          Vector for the output hashes.
+ *
+ * @return Video hashed successfully.
+ *
+ * @note If hashing fails for any reason the result will be empty.
+ */
+bool hashVideoFile(
+    const std::string& inputVideoFileName,
+    std::vector<hashing::vpdqFeature>& pdqHashes);
+
+/**
+ * Get frames from the video
+ * Then get pdq hashes for selected frames every secondPerHash
+ *
  * @param inputVideoFileName Input video's name
  * @param pdqHashes Vector which stores hashes
  * @param verbose If produce detailed output for diagnostic purposes
@@ -29,16 +44,18 @@ namespace hashing {
  * downsample
  * @param num_threads Number of threads to use for hashing. 0 is auto.
  *
- * @return If successfully hash the video
+ * @return Video hashed successfully.
+ *
+ * @note If hashing fails for any reason the result will be empty.
  */
 bool hashVideoFile(
     const std::string& inputVideoFileName,
     std::vector<hashing::vpdqFeature>& pdqHashes,
-    bool verbose = false,
-    const double secondsPerHash = 1,
-    const int downsampleWidth = 0,
-    const int downsampleHeight = 0,
-    const unsigned int num_threads = 0);
+    bool verbose,
+    const double secondsPerHash,
+    const int downsampleWidth,
+    const int downsampleHeight,
+    const unsigned int num_threads);
 
 } // namespace hashing
 } // namespace vpdq
