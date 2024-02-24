@@ -396,7 +396,7 @@ class VpdqHasher {
   }
 
   int64_t get_frame_number() const {
-    return video->codecContext->frame_number - 1;
+    return int64_t{video->codecContext->frame_number - 1};
   }
 
   // This signals to the threads that no more
@@ -536,6 +536,7 @@ bool hashVideoFile(
   }
 
   if (failed) {
+    pdqHashes.clear();
     return false;
   }
 
