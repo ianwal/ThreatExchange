@@ -108,3 +108,23 @@ target_link_libraries(vpdq-hash-video
 string(REPLACE ";" "\n" LIBRARY_DIRS "${LIBAV_STATIC_LIBRARY_DIRS}")
 set(LIBRARY_DIRS_FILE "libraries-dirs.txt")
 file(WRITE ${LIBRARY_DIRS_FILE} "${LIBRARY_DIRS}")
+
+###############################
+### BENCHMARKING
+###############################
+
+# Include Google Benchmark
+include(benchmark/GoogleBenchmark.cmake)
+
+# Add source to this project's executable.
+add_executable (vpdqbenchmark benchmark/benchmark_vpdq.cpp)
+
+# Link Google Benchmark to the project
+target_link_libraries(vpdqbenchmark benchmark::benchmark)
+
+# Link Shlwapi to the project
+if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
+    target_link_libraries(vpdqbenchmark Shlwapi)
+endif()
+
+target_link_libraries(vpdqbenchmark vpdq)
