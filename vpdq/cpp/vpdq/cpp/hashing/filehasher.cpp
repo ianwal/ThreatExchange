@@ -243,7 +243,7 @@ class AVVideo {
   }
 };
 
-class vpdqHasher {
+class VpdqHasher {
  public:
   struct FatFrame {
     AVFramePtr frame;
@@ -269,7 +269,7 @@ class vpdqHasher {
 
   bool verbose = false;
 
-  vpdqHasher(
+  VpdqHasher(
       std::unique_ptr<AVVideo> video,
       std::vector<hashing::vpdqFeature>& pdqHashes,
       unsigned int thread_count = 0)
@@ -287,7 +287,7 @@ class vpdqHasher {
       consumer_threads.reserve(this->thread_count);
       for (decltype(thread_count) i = 0; i < this->thread_count; ++i) {
         consumer_threads.emplace_back(
-            std::thread(std::bind(&vpdqHasher::consumer, this)));
+            std::thread(std::bind(&VpdqHasher::consumer, this)));
       }
     }
 
@@ -488,7 +488,7 @@ bool hashVideoFile(
   }
 
   // Create frame hasher
-  vpdqHasher hasher(std::move(video), pdqHashes, thread_count);
+  VpdqHasher hasher(std::move(video), pdqHashes, thread_count);
   hasher.verbose = verbose;
   auto const frameMod = secondsPerHash * hasher.video->frameRate;
   // Avoid truncate to zero on corner-case where
