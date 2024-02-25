@@ -32,7 +32,7 @@ namespace io {
 const int TIMESTAMP_OUTPUT_PRECISION = 3;
 
 bool loadHashesFromFileOrDie(
-    const string& inputHashFileName,
+    const std::string& inputHashFileName,
     std::vector<hashing::vpdqFeature>& pdqHashes) {
   std::ifstream inputfp(inputHashFileName);
   if (!inputfp) {
@@ -61,7 +61,7 @@ bool loadHashesFromFileOrDie(
          std::atoi(frameValues[1].c_str()),
          std::atof(frameValues[3].c_str())});
   }
-  if (pdqHashes.size() == 0) {
+  if (pdqHashes.empty()) {
     std::cerr << "Empty hash file " << inputHashFileName << std::endl;
     return false;
   }

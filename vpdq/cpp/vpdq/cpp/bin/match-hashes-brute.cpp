@@ -2,7 +2,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 #include <pdq/cpp/io/hashio.h>
@@ -10,31 +10,31 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
-using namespace std;
-using namespace facebook;
+namespace {
 
-static void usage(char* argv0, int rc) {
+void usage(char* argv0, int rc) {
   FILE* fp = (rc == 0) ? stdout : stderr;
-  fprintf(
+  std::fprintf(
       fp,
-      "Usage: %s [options] queryFilename targetFilename hamming_distance_tolerance quality_tolerance\n",
+      "Usage: %s [options] queryFilename targetFilename hamming_distance_tolerance quality_tolerance\n\n",
       argv0);
-  fprintf(fp, "Options:\n");
-  fprintf(fp, "-v|--verbose: Show all hash matching information\n");
-  exit(rc);
+  std::fprintf(fp, "Options:\n\n");
+  std::fprintf(fp, "-v|--verbose: Show all hash matching information\n\n");
+  std::exit(rc);
 }
+
+} // namespace
 
 int main(int argc, char** argv) {
   int argi = 1;
   bool verbose = false;
-  int distanceTolerance = 0;
-  int qualityTolerance = 0;
 
   for (; argi < argc; argi++) {
     if (argv[argi][0] != '-') {
       break;
     }
-    if (!strcmp(argv[argi], "-v") || !strcmp(argv[argi], "--verbose")) {
+    if (!std::strcmp(argv[argi], "-v") ||
+        !std::strcmp(argv[argi], "--verbose")) {
       verbose = true;
       continue;
     }
@@ -43,33 +43,38 @@ int main(int argc, char** argv) {
   if (argi > argc - 4) {
     usage(argv[0], 1);
   }
-  distanceTolerance = atoi(argv[argi + 2]);
-  qualityTolerance = atoi(argv[argi + 3]);
-  vector<facebook::vpdq::hashing::vpdqFeature> qHashes;
-  vector<facebook::vpdq::hashing::vpdqFeature> tHashes;
-  bool ret = facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi], qHashes);
-  if (!ret) {
+
+  const auto distanceTolerance = std::atoi(argv[argi + 2]);
+  const auto qualityTolerance = std::atoi(argv[argi + 3]);
+
+  // Load query hashes.
+  std::vector<facebook::vpdq::hashing::vpdqFeature> qHashes;
+  if (!facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi], qHashes)) {
     return EXIT_FAILURE;
   }
-  ret = facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi + 1], tHashes);
-  if (!ret) {
+
+  // Load target hashes.
+  std::vector<facebook::vpdq::hashing::vpdqFeature> tHashes;
+  if (!facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi + 1], tHashes)) {
     return EXIT_FAILURE;
   }
-  double qMatch = 0;
-  double tMatch = 0;
-  ret = facebook::vpdq::hashing::matchTwoHashBrute(
-      qHashes,
-      tHashes,
-      distanceTolerance,
-      qualityTolerance,
-      qMatch,
-      tMatch,
-      verbose);
-  if (!ret) {
+
+  // Get video hash similarity.
+  double qMatch = 0.0;
+  double tMatch = 0.0;
+  if (!facebook::vpdq::hashing::matchTwoHashBrute(
+          qHashes,
+          tHashes,
+          distanceTolerance,
+          qualityTolerance,
+          qMatch,
+          tMatch,
+          verbose)) {
     return EXIT_FAILURE;
   }
+
   // Print float with 2 decimal places
-  printf("%0.2f Percentage Query Video match\n", qMatch);
-  printf("%0.2f Percentage Target Video match\n", tMatch);
+  std::printf("%0.2f Percentage Query Video match\n", qMatch);
+  std::printf("%0.2f Percentage Target Video match\n", tMatch);
   return EXIT_SUCCESS;
 }

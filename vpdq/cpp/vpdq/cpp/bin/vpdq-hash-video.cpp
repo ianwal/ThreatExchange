@@ -10,140 +10,142 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
-static void usage(char* argv0, int rc) {
+namespace {
+
+void usage(char* argv0, int rc) {
   FILE* fp = (rc == 0) ? stdout : stderr;
-  fprintf(fp, "Usage: %s [options]\n", argv0);
-  fprintf(fp, "Required:\n");
-  fprintf(fp, "-i|--input-video-file-name ...\n");
-  fprintf(fp, "-o|--output-hash-file-name ...\n");
-  fprintf(
+  std::fprintf(fp, "Usage: %s [options]\n\n", argv0);
+  std::fprintf(fp, "Required:\n\n");
+  std::fprintf(fp, "-i|--input-video-file-name ...\n\n");
+  std::fprintf(fp, "-o|--output-hash-file-name ...\n\n");
+  std::fprintf(
       fp,
-      "-r|--seconds-per-hash ...:Must be a non-negative float. If it is 0, will generate every frame's hash\n");
-  fprintf(fp, "Options:\n");
-  fprintf(fp, "-v|--verbose: Show all hash matching information\n");
-  fprintf(
+      "-r|--seconds-per-hash ...:Must be a non-negative float. If it is 0, will generate every frame's hash\n\n");
+  std::fprintf(fp, "Options:\n\n");
+  std::fprintf(fp, "-v|--verbose: Show all hash matching information\n\n");
+  std::fprintf(
       fp,
-      "-d|--output-directory ...: instead of specifiying "
-      "output-file name, just give a directory and the output file name will "
-      "be auto-computed from the input video file name. For example, avideofile.mp4 -> output_directory>/avideofile.txt\n");
-  fprintf(
+      "-d|--output-directory ...: instead of specifying "
+      "output-file name, just give the directory and the output file name will "
+      "be computed from the input video file name. Example: avideofile.mp4 -> output_directory>/avideofile.txt\n\n");
+  std::fprintf(
       fp,
-      "-s|--downsample-frame-dimension ...: The down scaling resolution for video. The input number will be the height and width of the downscaled video. For example, -s 160 -> will make video of 1080x720 to 160x160.\n");
-  exit(rc);
+      "-s|--downsample-frame-dimension ...: The down scaling resolution for video. The input number will be the height and width of the downscaled video. For example, -s 160 -> will make video of 1080x720 to 160x160.\n\n");
+  std::exit(rc);
 }
 
 /**
  *
- * Get the base name with extension of the input path
+ * Get the base name with extension of the input path.
  *
- * ./dir/sub-dir/sample.txt -> sample.txt
+ * Example: ./dir/sub-dir/sample.txt -> sample.txt
  *
- * @param path Path of the target file
+ * @param filename Path of the file.
  *
+ * @return Filename without the path.
+ * 
  */
-std::string basename(const std::string& path) {
-  size_t i = path.find_last_of("\\/");
-  if (i == std::string::npos) {
-    return path;
-  } else {
-    return path.substr(i + 1);
-  }
+std::string basename(const std::string& filename) {
+  auto const separator_pos = filename.find_last_of("\\/");
+  auto const base_name = (separator_pos == std::string::npos)
+      ? filename
+      : filename.substr(separator_pos + 1);
+  return base_name;
 }
 
 /**
  *
- * Strip the extension of the input filename
+ * Strip the extension of the input filename.
  *
- * .sample.txt -> sample
+ * Example: sample.txt -> sample
  *
- * @param filename Path of the target file
+ * @param filename Path of the file.
  *
+ * @return Filename without the last extension.
+ * 
  */
 std::string stripExtension(const std::string& filename) {
-  size_t n = filename.rfind('.');
-  if (n == std::string::npos) {
-    return filename;
-  } else {
-    return filename.substr(0, n);
-  }
+  auto const delimiter_pos = filename.rfind('.');
+  auto const name = (delimiter_pos == std::string::npos)
+      ? filename
+      : filename.substr(0, delimiter_pos);
+  return name;
 }
+
+} // namespace
 
 int main(int argc, char** argv) {
   int argi = 1;
   bool verbose = false;
-  std::string inputVideoFileName = "";
-  std::string outputHashFileName = "";
-  std::string outputDirectory = "";
+  std::string inputVideoFileName{};
+  std::string outputHashFileName{};
+  std::string outputDirectory{};
   double secondsPerHash = 0;
   int downsampleFrameDimension = 0;
   unsigned int thread_count = 0;
 
   while ((argi < argc) && argv[argi][0] == '-') {
-    std::string flag(argv[argi++]);
+    const std::string flag(argv[argi]);
+    ++argi;
     if (flag == "-v" || flag == "--verbose") {
       verbose = true;
-      continue;
     }
-    if (flag == "-i" || flag == "--input-video-file-name") {
+    else if (flag == "-i" || flag == "--input-video-file-name") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      inputVideoFileName = std::string(argv[argi++]);
-      continue;
+      inputVideoFileName = std::string(argv[argi]);
+      ++argi;
     }
-    if (flag == "-o" || flag == "--output-hash-file-name") {
+    else if (flag == "-o" || flag == "--output-hash-file-name") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      outputHashFileName = std::string(argv[argi++]);
-      continue;
+      outputHashFileName = std::string(argv[argi]);
+      ++argi;
     }
-    if (flag == "-f" || flag == "--ffmpeg-path") {
+    else if (flag == "-r" || flag == "--seconds-per-hash") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      // does nothing anymore
-      continue;
+      secondsPerHash = std::atof(argv[argi]);
+      ++argi;
     }
-    if (flag == "-r" || flag == "--seconds-per-hash") {
+    else if (flag == "-d" || flag == "--output-directory") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      secondsPerHash = std::atof(argv[argi++]);
-      continue;
+      outputDirectory = std::string(argv[argi]);
+      ++argi;
     }
-    if (flag == "-d" || flag == "--output-directory") {
+    else if (flag == "-s" || flag == "--downsample-frame-dimension") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      outputDirectory = std::string(argv[argi++]);
-      continue;
+      downsampleFrameDimension = std::atoi(argv[argi]);
+      ++argi;
     }
-    if (flag == "-s" || flag == "--downsample-frame-dimension") {
+    else if (flag == "-t" || flag == "--thread-count") {
       if ((argc - argi) < 1) {
         usage(argv[0], 1);
       }
-      downsampleFrameDimension = std::atoi(argv[argi++]);
-      continue;
+      thread_count = std::atoi(argv[argi]);
+      ++argi;
     }
-    if (flag == "-t" || flag == "--thread-count") {
-      if ((argc - argi) < 1) {
-        usage(argv[0], 1);
-      }
-      thread_count = std::atoi(argv[argi++]);
-      continue;
+    else
+    {
+      usage(argv[0], 1);
     }
-    usage(argv[0], 1);
   }
 
   if (inputVideoFileName.empty()) {
-    fprintf(stderr, "%s: --input-video-file-name missing\n", argv[0]);
+    std::fprintf(stderr, "%s: --input-video-file-name missing\n", argv[0]);
     usage(argv[0], 1);
   }
 
   if ((outputHashFileName.empty() && outputDirectory.empty()) ||
       (!outputHashFileName.empty() && !outputDirectory.empty())) {
-    fprintf(
+    std::fprintf(
         stderr,
         "%s: need one of --output-hash-file-name "
         "or --output-directory\n",
@@ -152,7 +154,7 @@ int main(int argc, char** argv) {
   }
 
   if (secondsPerHash < 0) {
-    fprintf(
+    std::fprintf(
         stderr,
         "%s: --seconds-per-hash must be a non-negative float.\n",
         argv[0]);
@@ -161,30 +163,33 @@ int main(int argc, char** argv) {
 
   // Get the output hash file name if outputDirectory is specified
   if (!outputDirectory.empty()) {
-    std::string b = basename(inputVideoFileName);
-    b = stripExtension(b);
-    outputHashFileName = outputDirectory + "/" + b + ".txt";
+    auto const base_name = stripExtension(basename(inputVideoFileName));
+    outputHashFileName = outputDirectory + "/" + base_name + ".txt";
   }
 
   // Hash the video and store the features in pdqHashes
   std::vector<facebook::vpdq::hashing::vpdqFeature> pdqHashes;
-
-  bool rc = facebook::vpdq::hashing::hashVideoFile(
+  if (!facebook::vpdq::hashing::hashVideoFile(
       inputVideoFileName,
       pdqHashes,
       verbose,
       secondsPerHash,
       downsampleFrameDimension,
       downsampleFrameDimension,
-      thread_count);
-  if (!rc) {
-    fprintf(
+      thread_count)) {
+    std::fprintf(
         stderr,
         "%s: failed to hash \"%s\".\n",
         argv[0],
         inputVideoFileName.c_str());
     return EXIT_FAILURE;
   }
-  facebook::vpdq::io::outputVPDQFeatureToFile(outputHashFileName, pdqHashes);
+
+  // Write all vpdq features to the output file.
+  if (!facebook::vpdq::io::outputVPDQFeatureToFile(outputHashFileName, pdqHashes))
+  {
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }

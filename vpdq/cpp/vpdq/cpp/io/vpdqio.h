@@ -20,6 +20,7 @@ bool loadHashesFromFileOrDie(
 bool outputVPDQFeatureToFile(
     const std::string& outputHashFileName,
     const std::vector<hashing::vpdqFeature>& pdqHashes);
+
 } // namespace io
 } // namespace vpdq
 } // namespace facebook
