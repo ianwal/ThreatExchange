@@ -52,6 +52,7 @@ set(SOURCES
 SET(HEADERS
     vpdq/cpp/hashing/bufferhasher.h
     vpdq/cpp/hashing/filehasher.h
+    vpdq/cpp/hashing/ffmpegutils.h
     vpdq/cpp/hashing/vpdqHashType.h
     vpdq/cpp/hashing/matchTwoHash.h
     vpdq/cpp/io/vpdqio.h
