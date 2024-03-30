@@ -43,7 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: vpdq/wheelhouse/*.whl
+          path: ./wheelhouse/*.whl
           if-no-files-found: error
           retention-days: 5
 
@@ -66,12 +66,14 @@ jobs:
           sudo apt-get install -y python3-dev pkg-config cmake ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev
 
       - name: Build sdist
-        run: pipx run build --sdist
+        run: python -m build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 5
 
       - name: Ensure packaged build runs
         run: |
