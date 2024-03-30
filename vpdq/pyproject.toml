@@ -37,8 +37,8 @@ skip = [
 ]
 
 # This runs tests to make sure it built correctly.
-# test-requires = "pytest"
-# test-command = "pytest ThreatExchange/vpdq/tests"
+test-requires = "pytest"
+test-command = "pytest python/tests"
 
 [tool.cibuildwheel.linux]
 before-build = [
