@@ -25,7 +25,23 @@ exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.cibuildwheel]
+skip = [
+    # Skip 32-bit builds
+    "*-win32",
+    "*-manylinux_i686",
+    # Skip musllinux.
+    # yum is not found on musllinux. TODO: See if vpdq and dependencies build with musllinux and override before-build for it.
+    "*-musllinux*"
+]
 
-before-build-linux = [
-    "sudo apt-get install libavdevice-dev libavfilter-dev libavformat-dev libavcodec-dev libswresample-dev libswscale-dev libavutil-dev"
+# This runs tests to make sure it built correctly.
+test-requires = "pytest"
+test-command = "pytest ThreatExchange/vpdq/tests"
+
+[tool.cibuildwheel.linux]
+before-build = [
+    "yum update -y",
+    "yum install epel-release -y", # This should already be installed, but install it anyway.
+    "yum localinstall --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm -y", # This repo has ffmpeg and ffmpeg-devel
+    "yum install -y ffmpeg-devel"
 ]
