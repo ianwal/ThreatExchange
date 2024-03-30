@@ -60,6 +60,7 @@ SET(HEADERS
 include_directories( vpdq/cpp/bin vpdq/cpp/hashing vpdq/cpp/io ${CMAKE_SOURCE_DIR} )
 
 add_library(vpdq
+    STATIC
     ${SOURCES}
     ${HEADERS}
     ${PDQSOURCES}
