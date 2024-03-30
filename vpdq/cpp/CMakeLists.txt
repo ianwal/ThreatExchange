@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.17)
 project(VPDQ CXX)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-O2 -fPIC -Wall -Wextra -Werror -Wno-unused-function -Wno-deprecated-declarations")
+set(CMAKE_CXX_FLAGS "-O2 -fPIC -Wall -Wextra -Werror -Wno-unused-function -Wno-deprecated-declarations -fsanitize=thread,undefined")
+set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined")
 
 # Enable threads
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
