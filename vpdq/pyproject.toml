@@ -32,6 +32,8 @@ skip = [
     # Skip musllinux.
     # yum is not found on musllinux. TODO: See if vpdq and dependencies build with musllinux and override before-build for it.
     "*-musllinux*"
+    # Disable building PyPy wheels on all platforms.
+    "pp*"
 ]
 
 # This runs tests to make sure it built correctly.
