@@ -1,8 +1,18 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 
-name: Build vpdq wheels for many platforms.
+# TODO: Rename this file to vpdq-release.yaml and replace existing workflow
+#       when this is working and approved.
 
-on: [workflow_dispatch, push, pull_request]
+name: Publish vpdq to pypi.
+
+on:
+  workflow_dispatch:
+  # TODO: Re-enable this when cibuildwheel works on Test PyPi
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "vpdq/version.txt"
 
 defaults:
   run:
@@ -70,7 +80,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        # unpacks all CIBW artifacts into dist/
+        # unpacks all CIBW (CI build wheel) artifacts into dist/
         pattern: cibw-*
         path: dist
         merge-multiple: true
@@ -80,4 +90,12 @@ jobs:
       with:
         password: ${{ secrets.test_pypi_password }}
         repository-url: https://test.pypi.org/legacy/
-        # packages-dir: vpdq/dist
+
+  # TODO: Re-enable this when cibuildwheel works on Test PyPi
+  #       and ready to allow official releases.
+  # - name: Publish to PyPI
+  #    uses: pypa/gh-action-pypi-publish@release/v1
+  #    with:
+  #      password: ${{ secrets.test_pypi_password }}
+  #      repository-url: https://test.pypi.org/legacy/
+  #      # packages-dir: vpdq/dist
