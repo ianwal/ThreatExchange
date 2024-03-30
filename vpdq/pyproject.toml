@@ -25,6 +25,9 @@ exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.cibuildwheel]
+# Increase pip debugging output
+build-verbosity = 1
+
 skip = [
     # Skip 32-bit builds
     "*-win32",
