@@ -23,3 +23,32 @@ where = ["python"]  # list of folders that contain the packages (["."] by defaul
 include = ["vpdq.pyx"]  # package names should match these glob patterns (["*"] by default)
 exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
+[tool.cibuildwheel]
+# Increase pip debugging output
+build-verbosity = 1
+
+skip = [
+    # Skip 32-bit builds
+    "*-win32",
+    "*-manylinux_i686",
+    # Skip musllinux.
+    # yum is not found on musllinux.
+    # TODO: See if vpdq and dependencies build with musllinux and override before-build for it.
+    "*-musllinux*",
+    # Disable building PyPy wheels on all platforms.
+    # TODO: Find out if PyPy is well supported and stable with Cython.
+    "pp*",
+]
+
+# This runs tests with the wheel to make sure it works.
+test-requires = "pytest"
+test-command = "python -m pytest {project}/python/tests"
+
+[tool.cibuildwheel.linux]
+before-build = [
+    "yum update -y",
+    "yum install epel-release -y", # This should already be installed, but install it anyway.
+    "yum localinstall --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm -y", # This repo has ffmpeg and ffmpeg-devel
+    "yum install -y ffmpeg-devel"
+]

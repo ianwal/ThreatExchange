@@ -1,0 +1,108 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+# TODO: Rename this file to vpdq-release.yaml and replace existing workflow
+#       when this is working and approved.
+
+name: Publish vpdq to pypi.
+
+on:
+  workflow_dispatch:
+  pull_request:
+  # TODO: Re-enable this when cibuildwheel works on Test PyPi
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "vpdq/version.txt"
+
+defaults:
+  run:
+    working-directory: vpdq
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install cibuildwheel
+        run: python -m pip install "cibuildwheel<2.18"
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 5
+
+  make_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install packaging dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r packaging-requirements.txt
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-dev pkg-config cmake ffmpeg libavcodec-dev libavformat-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev
+
+      - name: Build sdist
+        run: python -m build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: Ensure packaged build runs
+        run: |
+          python -m pip install dist/*.tar.gz
+          python -c "import vpdq"
+
+  upload_all:
+    needs: [build_wheels, make_sdist]
+    environment: pypi
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        # unpacks all CIBW (CI build wheel) artifacts into dist/
+        pattern: cibw-*
+        path: dist
+        merge-multiple: true
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.test_pypi_password }}
+        repository-url: https://test.pypi.org/legacy/
+
+  # TODO: Re-enable this when cibuildwheel works on Test PyPi
+  #       and ready to allow official releases.
+  # - name: Publish to PyPI
+  #    uses: pypa/gh-action-pypi-publish@release/v1
+  #    with:
+  #      password: ${{ secrets.test_pypi_password }}
+  #      repository-url: https://test.pypi.org/legacy/
+  #      # packages-dir: vpdq/dist
