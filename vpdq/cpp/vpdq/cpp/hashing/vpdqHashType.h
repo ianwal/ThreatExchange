@@ -7,8 +7,6 @@
 
 #include <pdq/cpp/common/pdqhashtypes.h>
 
-using namespace std;
-
 namespace facebook {
 namespace vpdq {
 namespace hashing {

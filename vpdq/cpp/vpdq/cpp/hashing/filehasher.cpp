@@ -138,7 +138,7 @@ class FFmpegHasher {
       }
 
       // Get the current frame number from the video codec context
-      auto const frameNumber = m_video->codecContext->frame_number - 1;
+      auto const frameNumber = m_video->codecContext->frame_num - 1;
 
       if (frameNumber % m_frameMod == 0) {
         AVFramePtr targetFrame{};

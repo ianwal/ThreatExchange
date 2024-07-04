@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <pdq/cpp/common/pdqhashtypes.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 
 namespace facebook {
@@ -32,7 +31,7 @@ namespace hashing {
  */
 bool hashVideoFile(
     const std::string& inputVideoFileName,
-    std::vector<hashing::vpdqFeature>& pdqHashes,
+    std::vector<vpdqFeature>& pdqHashes,
     bool verbose = false,
     const double secondsPerHash = 1,
     const int downsampleWidth = 0,

@@ -20,7 +20,6 @@
 #include <chrono>
 #include <cmath>
 
-using namespace std;
 
 namespace facebook {
 namespace pdq {

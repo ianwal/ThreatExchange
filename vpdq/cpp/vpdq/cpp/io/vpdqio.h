@@ -5,10 +5,10 @@
 #ifndef VPDQIO_H
 #define VPDQIO_H
 
-#include <pdq/cpp/common/pdqhashtypes.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 
 #include <vector>
+#include <string>
 
 namespace facebook {
 namespace vpdq {

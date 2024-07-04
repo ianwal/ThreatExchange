@@ -2,22 +2,22 @@
 # This will produce one library file: libvpdqlib
 
 set(VPDQSOURCES
-    cpp/hashing/bufferhasher.cpp
     cpp/hashing/filehasher.cpp
-    cpp/hashing/ffmpegutils.cpp
     cpp/hashing/ffmpegwrapper.cpp
     cpp/hashing/hasher.cpp
+    cpp/hashing/bufferhasher.cpp
+    cpp/hashing/ffmpegutils.cpp
     cpp/hashing/matchTwoHash.cpp
     cpp/io/vpdqio.cpp
 )
 
 set(VPDQHEADERS
-    cpp/hashing/bufferhasher.h
     cpp/hashing/filehasher.h
-    cpp/hashing/ffmpegutils.h
-    cpp/hashing/ffmpegwrapper.h
-    cpp/hashing/hasher.h
     cpp/hashing/vpdqHashType.h
+    cpp/hashing/hasher.h
+    cpp/hashing/ffmpegwrapper.h
+    cpp/hashing/bufferhasher.h
+    cpp/hashing/ffmpegutils.h
     cpp/hashing/matchTwoHash.h
     cpp/io/vpdqio.h
 )
@@ -25,14 +25,14 @@ set(VPDQHEADERS
 # Make an automatic library - will be static or dynamic based on user setting.
 # Note: Headers are optional, and do not affect add_library, but they will not
 # show up in IDEs unless they are listed in add_library.
-add_library(vpdqlib ${VPDQSOURCES} ${VPDQHEADERS})
+add_library(vpdqlib ${VPDQHEADERS} ${VPDQSOURCES})
 
 # We need this directory, and users of the library will need it too.
 target_include_directories(vpdqlib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-target_link_libraries(vpdqlib PUBLIC PkgConfig::LIBAV Threads::Threads pdqlib)
+target_link_libraries(vpdqlib PRIVATE pdqlib PkgConfig::LIBAV Threads::Threads)
 
 # All users of this library will need at least C++14
 target_compile_features(vpdqlib PUBLIC cxx_std_14)
