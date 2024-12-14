@@ -25,3 +25,9 @@ regex = "^(?P<value>\\S+)$"
 [tool.scikit-build]
 minimum-version = "0.10"
 cmake.build-type = "RelWithDebInfo"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "clang-format~=14",
+]
