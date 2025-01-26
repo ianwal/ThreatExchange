@@ -16,6 +16,11 @@ defaults:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: pypi-test
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,7 +50,6 @@ jobs:
       - name: Publish distribution to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.test_pypi_password }}
           repository-url: https://test.pypi.org/legacy/
           packages-dir: vpdq/dist
 
@@ -60,9 +64,3 @@ jobs:
           python -c "import vpdq; print(dir(vpdq))"
           python -m pip install pytest
           python -m pytest
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.pypi_password }}
-          packages-dir: vpdq/dist
