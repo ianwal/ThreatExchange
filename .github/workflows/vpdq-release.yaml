@@ -49,6 +49,18 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           packages-dir: vpdq/dist
 
+      # From https://packaging.python.org/en/latest/guides/using-testpypi/#using-testpypi-with-pip
+      - name: Test installing the published Test PyPI distribution package
+        run: |
+          pip list
+          pip uninstall -y -r <(pip freeze)
+          pip list
+          python -m pip install --index-url https://test.pypi.org/simple/ vpdq
+          pip list
+          python -c "import vpdq; print(dir(vpdq))"
+          python -m pip install pytest
+          python -m pytest
+
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
