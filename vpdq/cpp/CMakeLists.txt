@@ -71,6 +71,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # Find libav* FFmpeg libraries using pkg-config
+if(NOT MSVC)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavdevice
@@ -81,6 +82,17 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libswscale
     libavutil
 )
+else()
+add_library(LIBAV INTERFACE)
+target_include_directories(LIBAV INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/include)
+target_include_directories(LIBAV INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/bin)
+target_link_libraries(LIBAV INTERFACE
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/lib/avcodec.lib
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/lib/avformat.lib
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/lib/avfilter.lib
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/lib/avutil.lib
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/lib/swscale.lib)
+endif()
 
 # pdq library
 add_subdirectory(pdq)

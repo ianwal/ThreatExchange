@@ -32,7 +32,7 @@ target_include_directories(vpdqlib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-target_link_libraries(vpdqlib PUBLIC PkgConfig::LIBAV Threads::Threads pdqlib)
+target_link_libraries(vpdqlib PUBLIC LIBAV Threads::Threads pdqlib)
 
 # All users of this library will need at least C++14
 target_compile_features(vpdqlib PUBLIC cxx_std_14)

@@ -1,4 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
+import os
+from pathlib import Path
+
+# FIXME: Must fix this. This is needed on Windows currently because of "ImportError: DLL load failed while importing vpdq: The specified module could not be found."
+os.add_dll_directory((Path(__file__).parent.parent.parent / "cpp/ffmpeg/bin").absolute())
+
 import vpdq  # type: ignore
 import typing as t
 

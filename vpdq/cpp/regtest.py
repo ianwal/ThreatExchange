@@ -12,12 +12,6 @@ import platform
 from typing import Union
 import csv
 
-DIR = Path(__file__).parent
-VPDQ_DIR = DIR.parent
-SAMPLE_HASHES_DIR = VPDQ_DIR / "sample-hashes"
-EXEC_DIR = VPDQ_DIR / "cpp/build/apps"
-
-
 def get_os() -> str:
     if platform.system() == "Windows":
         return "Windows"
@@ -28,6 +22,12 @@ def get_os() -> str:
     else:
         print("Unknown OS. Unexpected results may occur.")
         return "Unknown"
+
+DIR = Path(__file__).parent
+VPDQ_DIR = DIR.parent
+SAMPLE_HASHES_DIR = VPDQ_DIR / "sample-hashes"
+EXEC_DIR = VPDQ_DIR / "cpp/build/apps" / ("Debug" if (get_os() == "Windows") else "") 
+
 
 
 def get_argparse() -> argparse.ArgumentParser:
@@ -100,12 +100,10 @@ def validate_path(path: Union[Path, str], err_msg: Union[str, None] = None) -> P
 
 
 def main():
-    OS = get_os()
-
     hashVideoExecutable = EXEC_DIR / "vpdq-hash-video"
     matchHashesExecutable = EXEC_DIR / "match-hashes-byline"
 
-    if OS == "Windows":
+    if get_os() == "Windows":
         hashVideoExecutable = Path(f"{hashVideoExecutable}.exe")
         matchHashesExecutable = Path(f"{matchHashesExecutable}.exe")
 
@@ -181,7 +179,7 @@ def main():
                         command,
                         check=True,
                         capture_output=True,
-                        shell=(OS == "Windows"),
+                        shell=(get_os() == "Windows"),
                     )
                     print(str(hash_proc.stdout, "utf-8"))
                 except subprocess.CalledProcessError as e:
