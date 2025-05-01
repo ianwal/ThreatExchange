@@ -20,7 +20,9 @@
 #include <thread>
 #include <vector>
 
+#include <pdq/cpp/common/pdqhashtypes.h>
 #include <vpdq/cpp/hashing/bufferhasher.h>
+#include <vpdq/cpp/hashing/bufferhasherfactory.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 
 namespace facebook {
