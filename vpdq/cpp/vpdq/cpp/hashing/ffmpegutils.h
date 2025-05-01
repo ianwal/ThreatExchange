@@ -12,15 +12,16 @@ namespace vpdq {
 namespace hashing {
 namespace ffmpeg {
 
-/** @brief Writes a raw AVFrame to a file.
+/** @brief Writes a raw AVFrame to a file (FOR DEBUG ONLY).
  *
  * @param frame The frame to write. Must not be nullptr and its data must not be
  *              nullptr.
  * @param filename Name of output file.
- * @note Useful for debugging.
- * @note This can viewed using ffplay directly:
- *       ffplay -f rawvideo -pixel_format rgb24
- *       -video_size <width>x<height> <filename>
+ *
+ * @note The output frame can viewed using ffplay directly:
+ *
+ * ffplay -f rawvideo -pixel_format rgb24 video_size <width>x<height> <filename>
+ *
  **/
 void saveFrameToFile(AVFramePtr frame, const std::string& filename);
 
