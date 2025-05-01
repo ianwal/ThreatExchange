@@ -24,26 +24,24 @@ namespace hashing {
  *
  */
 class AbstractFrameBufferHasher {
- protected:
-  int _frameHeight;
-  int _frameWidth;
-  int _numRGBTriples;
-
  public:
-  AbstractFrameBufferHasher(int frameHeight, int frameWidth) {
-    _frameHeight = frameHeight;
-    _frameWidth = frameWidth;
-    _numRGBTriples = frameHeight * frameWidth;
-  }
-  virtual ~AbstractFrameBufferHasher() {}
+  AbstractFrameBufferHasher(int frameHeight, int frameWidth);
+
+  virtual ~AbstractFrameBufferHasher() = default;
 
   // Number of floats in each framewise hash
-  virtual int getFeatureDimension() = 0;
+  virtual int getFeatureDimension() const = 0;
 
+  // Get PDQ Hash in Hash256 format
   virtual bool hashFrame(
       unsigned char* buffer,
       facebook::pdq::hashing::Hash256& hash,
       int& quality) = 0;
+
+ protected:
+  int _frameHeight;
+  int _frameWidth;
+  int _numRGBTriples;
 };
 
 /**
@@ -55,33 +53,27 @@ class AbstractFrameBufferHasher {
  *
  */
 class PDQFrameBufferHasher : public AbstractFrameBufferHasher {
- private:
-  //  Variables for computing pdq hash
-  std::vector<float> _fullLumaImageBuffer1;
-  std::vector<float> _fullLumaImageBuffer2;
-  static const int SCALED_DIMENSION = 64;
-  float _buffer64x64[64][64];
-  float _buffer16x64[16][64];
-  float _buffer16x16[16][16];
-
  public:
-  PDQFrameBufferHasher(int frameHeight, int frameWidth)
-      : AbstractFrameBufferHasher(frameHeight, frameWidth) {
-    _fullLumaImageBuffer1 = std::vector<float>(_numRGBTriples);
-    _fullLumaImageBuffer2 = std::vector<float>(_numRGBTriples);
-  }
+  PDQFrameBufferHasher(int frameHeight, int frameWidth);
 
-  ~PDQFrameBufferHasher() {}
+  ~PDQFrameBufferHasher() = default;
 
-  static int getFrameDownscaleDimension() { return SCALED_DIMENSION; }
-  int getFeatureDimension() override {
-    return facebook::pdq::hashing::HASH256_NUM_BITS;
-  }
-  // Get PDQ Hash in Hash256 format
+  int getFeatureDimension() const override;
+
   bool hashFrame(
       unsigned char* buffer,
       facebook::pdq::hashing::Hash256& hash,
       int& quality) override;
+
+  static constexpr int getFrameDownscaleDimension() { return 64; }
+
+ private:
+  // Variables for computing pdq hash
+  std::vector<float> _fullLumaImageBuffer1;
+  std::vector<float> _fullLumaImageBuffer2;
+  float _buffer64x64[64][64];
+  float _buffer16x64[16][64];
+  float _buffer16x16[16][16];
 };
 
 // A factory design pattern to create the Buffer Hasher

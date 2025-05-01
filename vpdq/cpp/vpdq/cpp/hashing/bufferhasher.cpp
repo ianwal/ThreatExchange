@@ -16,7 +16,13 @@ namespace facebook {
 namespace vpdq {
 namespace hashing {
 
-const int MIN_HASHABLE_DIM = 5;
+static constexpr int MIN_HASHABLE_DIM = 5;
+
+AbstractFrameBufferHasher::AbstractFrameBufferHasher(
+    int frameHeight, int frameWidth)
+    : _frameHeight(frameHeight),
+      _frameWidth(frameWidth),
+      _numRGBTriples(frameHeight * frameWidth) {}
 
 bool PDQFrameBufferHasher::hashFrame(
     unsigned char* buffer,
@@ -50,6 +56,15 @@ bool PDQFrameBufferHasher::hashFrame(
       quality);
 
   return true;
+}
+
+PDQFrameBufferHasher::PDQFrameBufferHasher(int frameHeight, int frameWidth)
+    : AbstractFrameBufferHasher(frameHeight, frameWidth),
+      _fullLumaImageBuffer1(std::vector<float>(_numRGBTriples)),
+      _fullLumaImageBuffer2(std::vector<float>(_numRGBTriples)) {}
+
+int PDQFrameBufferHasher::getFeatureDimension() const {
+  return facebook::pdq::hashing::HASH256_NUM_BITS;
 }
 
 int FrameBufferHasherFactory::getFrameHasherDownscaleDimension() {
