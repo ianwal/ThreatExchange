@@ -97,6 +97,7 @@ bool matchTwoHashBrute(
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
   return true;
 }
+
 } // namespace hashing
 } // namespace vpdq
 } // namespace facebook

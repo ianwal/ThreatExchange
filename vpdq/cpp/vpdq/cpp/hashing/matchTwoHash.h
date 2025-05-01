@@ -11,6 +11,7 @@
 namespace facebook {
 namespace vpdq {
 namespace hashing {
+
 /**
  * Compare two vpdq hash vectors in brute-force.
  * Result in two double percentages: qMatch, tMatch
@@ -35,6 +36,7 @@ bool matchTwoHashBrute(
     double& qMatch,
     double& tMatch,
     const bool verbose);
+
 } // namespace hashing
 } // namespace vpdq
 } // namespace facebook
