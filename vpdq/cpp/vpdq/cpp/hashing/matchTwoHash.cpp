@@ -86,6 +86,11 @@ bool matchTwoHashBrute(
   // Filter low quality hashes
   auto queryFiltered = filterFeatures(qHashes, qualityTolerance, verbose);
   auto targetFiltered = filterFeatures(tHashes, qualityTolerance, verbose);
+  if ((queryFiltered.size() == 0U) || (targetFiltered.size() == 0U)) {
+    qMatch = 0U;
+    tMatch = 0U;
+    return false;
+  }
 
   // Get count of query in target and target in query
   auto qMatchCnt =
