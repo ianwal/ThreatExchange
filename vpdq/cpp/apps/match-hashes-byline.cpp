@@ -11,8 +11,6 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
-using namespace facebook;
-
 static void usage(char* argv0, int rc) {
   FILE* fp = (rc == 0) ? stdout : stderr;
   fprintf(
