@@ -53,7 +53,7 @@ bool loadHashesFromFileOrDie(
       return false;
     }
     pdqHashes.push_back(
-        {pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
+        {facebook::pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
          std::atoi(frameValues[0].c_str()),
          std::atoi(frameValues[1].c_str()),
          std::atof(frameValues[3].c_str())});

@@ -41,7 +41,9 @@ class AbstractFrameBufferHasher {
   virtual int getFeatureDimension() = 0;
 
   virtual bool hashFrame(
-      unsigned char* buffer, pdq::hashing::Hash256& hash, int& quality) = 0;
+      unsigned char* buffer,
+      facebook::pdq::hashing::Hash256& hash,
+      int& quality) = 0;
 };
 
 /**
@@ -72,11 +74,13 @@ class PDQFrameBufferHasher : public AbstractFrameBufferHasher {
   ~PDQFrameBufferHasher() {}
 
   static int getFrameDownscaleDimension() { return SCALED_DIMENSION; }
-  int getFeatureDimension() override { return pdq::hashing::HASH256_NUM_BITS; }
+  int getFeatureDimension() override {
+    return facebook::pdq::hashing::HASH256_NUM_BITS;
+  }
   // Get PDQ Hash in Hash256 format
   bool hashFrame(
       unsigned char* buffer,
-      pdq::hashing::Hash256& hash,
+      facebook::pdq::hashing::Hash256& hash,
       int& quality) override;
 };
 

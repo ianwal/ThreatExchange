@@ -21,7 +21,7 @@ const int MIN_HASHABLE_DIM = 5;
 // ----------------------------------------------------------------
 bool PDQFrameBufferHasher::hashFrame(
     unsigned char* buffer,
-    pdq::hashing::Hash256& hash, // The result pdq hash
+    facebook::pdq::hashing::Hash256& hash, // The result pdq hash
     int& quality // Hashing Quality
 ) {
   if (_frameHeight < MIN_HASHABLE_DIM || _frameWidth < MIN_HASHABLE_DIM) {
@@ -55,7 +55,6 @@ bool PDQFrameBufferHasher::hashFrame(
 
 int FrameBufferHasherFactory::getFrameHasherDownscaleDimension() {
   return PDQFrameBufferHasher::getFrameDownscaleDimension();
-  ;
 }
 
 // ----------------------------------------------------------------

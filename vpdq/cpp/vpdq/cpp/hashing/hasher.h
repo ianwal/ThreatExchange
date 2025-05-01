@@ -167,7 +167,7 @@ vpdqFeature hashFrame(TFrame& frame, const VideoMetadata& video_metadata) {
       video_metadata.height, video_metadata.width);
 
   int quality;
-  pdq::hashing::Hash256 pdqHash;
+  facebook::pdq::hashing::Hash256 pdqHash;
   auto const is_hashing_successful =
       phasher->hashFrame(frame.get_buffer_ptr(), pdqHash, quality);
   if (!is_hashing_successful) {
