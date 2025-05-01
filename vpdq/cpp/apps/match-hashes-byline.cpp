@@ -11,7 +11,6 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
-using namespace std;
 using namespace facebook;
 
 static void usage(char* argv0, int rc) {
@@ -45,8 +44,8 @@ int main(int argc, char** argv) {
     usage(argv[0], 1);
   }
 
-  vector<facebook::vpdq::hashing::vpdqFeature> video1Hashes;
-  vector<facebook::vpdq::hashing::vpdqFeature> video2Hashes;
+  std::vector<facebook::vpdq::hashing::vpdqFeature> video1Hashes;
+  std::vector<facebook::vpdq::hashing::vpdqFeature> video2Hashes;
   bool ret =
       facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi], video1Hashes);
   if (!ret) {
