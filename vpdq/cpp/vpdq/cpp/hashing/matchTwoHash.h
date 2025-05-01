@@ -24,11 +24,8 @@ namespace hashing {
  * @param qMatch Percentage of matches in query hash
  * @param tMatch Percentage of matches in target hash
  * @param verbose If produce detailed output for diagnostic purposes
- * @param programName The name of executable program which invokes the function
- *
- * @return If successfully hash the video
  */
-bool matchTwoHashBrute(
+void matchTwoHashBrute(
     const std::vector<vpdq::hashing::vpdqFeature>& qHashes,
     const std::vector<vpdq::hashing::vpdqFeature>& tHashes,
     const int distanceTolerance,

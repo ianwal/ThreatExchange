@@ -75,7 +75,7 @@ static std::vector<vpdq::hashing::vpdqFeature>::size_type findMatches(
   return matchCnt;
 }
 
-bool matchTwoHashBrute(
+void matchTwoHashBrute(
     const std::vector<vpdq::hashing::vpdqFeature>& qHashes,
     const std::vector<vpdq::hashing::vpdqFeature>& tHashes,
     const int distanceTolerance,
@@ -89,7 +89,7 @@ bool matchTwoHashBrute(
   if ((queryFiltered.size() == 0U) || (targetFiltered.size() == 0U)) {
     qMatch = 0U;
     tMatch = 0U;
-    return false;
+    return;
   }
 
   // Get count of query in target and target in query
@@ -100,7 +100,7 @@ bool matchTwoHashBrute(
 
   qMatch = (qMatchCnt * 100.0) / queryFiltered.size();
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
-  return true;
+  return;
 }
 
 } // namespace hashing
