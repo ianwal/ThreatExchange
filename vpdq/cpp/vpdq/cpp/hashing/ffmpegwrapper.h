@@ -86,6 +86,16 @@ class FFmpegVideo {
    */
   bool createSwsContext();
 
+  // Copy
+  FFmpegVideo(const FFmpegVideo&) = delete;
+  FFmpegVideo& operator=(const FFmpegVideo&) = delete;
+
+  // Move
+  FFmpegVideo(FFmpegVideo&&) = default;
+  FFmpegVideo& operator=(FFmpegVideo&&) = default;
+
+  ~FFmpegVideo() = default;
+
   AVCodecContextPtr codecContext;
   AVFormatContextPtr formatContext;
   SwsContextPtr swsContext;
@@ -120,8 +130,8 @@ class FFmpegFrame {
   unsigned char* get_buffer_ptr();
 
   // Copy
-  FFmpegFrame(FFmpegFrame const&) = delete;
-  FFmpegFrame& operator=(FFmpegFrame const&) = delete;
+  FFmpegFrame(const FFmpegFrame&) = delete;
+  FFmpegFrame& operator=(const FFmpegFrame&) = delete;
 
   // Move
   FFmpegFrame(FFmpegFrame&&) = default;
