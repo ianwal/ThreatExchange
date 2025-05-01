@@ -140,7 +140,7 @@ class FFmpegHasher {
 
 // AVCodecContext::frame_number was deprecated in FFmpeg 6.0
 // in favor of AVCodecContext::frame_num
-#if LIBAVCODEC_VERSION_MAJOR >= 60
+#if defined(LIBAVCODEC_VERSION_MAJOR) && LIBAVCODEC_VERSION_MAJOR >= 60
       const auto codecFrameNumber = m_video->codecContext->frame_num;
 #else
       const auto codecFrameNumber = m_video->codecContext->frame_number;
