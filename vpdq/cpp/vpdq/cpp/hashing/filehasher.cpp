@@ -132,10 +132,10 @@ class FFmpegHasher {
       if (receive_frame_err == AVERROR(EAGAIN) ||
           receive_frame_err == AVERROR_EOF) {
         break;
-      } else if (receive_frame_err < 0) {
+      }
+
+      if (receive_frame_err < 0) {
         throw std::runtime_error("Cannot receive frame from decoder");
-      } else {
-        // no error. we're good.
       }
 
 // AVCodecContext::frame_number was deprecated in FFmpeg 6.0
