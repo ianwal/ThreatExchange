@@ -195,7 +195,6 @@ class FFmpegHasher {
 
 } // namespace
 
-// Get pdq hashes for selected frames every secondsPerHash
 bool hashVideoFile(
     const std::string& inputVideoFileName,
     std::vector<hashing::vpdqFeature>& pdqHashes,

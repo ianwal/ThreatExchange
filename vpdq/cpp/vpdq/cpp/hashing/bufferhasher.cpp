@@ -18,7 +18,6 @@ namespace hashing {
 
 const int MIN_HASHABLE_DIM = 5;
 
-// ----------------------------------------------------------------
 bool PDQFrameBufferHasher::hashFrame(
     unsigned char* buffer,
     facebook::pdq::hashing::Hash256& hash, // The result pdq hash
@@ -57,7 +56,6 @@ int FrameBufferHasherFactory::getFrameHasherDownscaleDimension() {
   return PDQFrameBufferHasher::getFrameDownscaleDimension();
 }
 
-// ----------------------------------------------------------------
 std::unique_ptr<AbstractFrameBufferHasher>
 FrameBufferHasherFactory::createFrameHasher(int frameHeight, int frameWidth) {
   return std::make_unique<PDQFrameBufferHasher>(frameHeight, frameWidth);

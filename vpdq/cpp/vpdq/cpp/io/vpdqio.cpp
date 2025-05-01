@@ -30,7 +30,7 @@ const int TIMESTAMP_OUTPUT_PRECISION = 3;
 
 bool loadHashesFromFileOrDie(
     const std::string& inputHashFileName,
-    std::vector<hashing::vpdqFeature>& pdqHashes) {
+    std::vector<facebook::vpdq::hashing::vpdqFeature>& vpdqHashes) {
   std::ifstream inputfp(inputHashFileName);
   if (!inputfp) {
     std::cerr << "Could not open input file " << inputHashFileName << std::endl;
@@ -52,13 +52,13 @@ bool loadHashesFromFileOrDie(
       std::cerr << "Wrong format of hash: " << str << std::endl;
       return false;
     }
-    pdqHashes.push_back(
+    vpdqHashes.push_back(
         {facebook::pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
          std::atoi(frameValues[0].c_str()),
          std::atoi(frameValues[1].c_str()),
          std::atof(frameValues[3].c_str())});
   }
-  if (pdqHashes.size() == 0) {
+  if (vpdqHashes.size() == 0) {
     std::cerr << "Empty hash file " << inputHashFileName << std::endl;
     return false;
   }
@@ -67,7 +67,7 @@ bool loadHashesFromFileOrDie(
 
 bool outputVPDQFeatureToFile(
     const std::string& outputHashFileName,
-    const std::vector<hashing::vpdqFeature>& pdqHashes) {
+    const std::vector<facebook::vpdq::hashing::vpdqFeature>& vpdqHashes) {
   std::ofstream outfile(outputHashFileName);
   if (!outfile) {
     std::cerr << "Could not open output file " << outputHashFileName
@@ -76,7 +76,7 @@ bool outputVPDQFeatureToFile(
   }
 
   // Write feature to output file
-  for (const auto& s : pdqHashes) {
+  for (const auto& s : vpdqHashes) {
     outfile << s.frameNumber;
     outfile << ",";
     outfile << s.quality;
