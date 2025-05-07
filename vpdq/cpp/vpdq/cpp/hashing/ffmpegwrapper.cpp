@@ -117,8 +117,8 @@ bool FFmpegVideo::createSwsContext() {
       codecContext->pix_fmt,
       width,
       height,
-      PIXEL_FORMAT,
-      DOWNSAMPLE_METHOD,
+      config::get_pixel_format(),
+      config::get_downsample_method(),
       nullptr,
       nullptr,
       nullptr));

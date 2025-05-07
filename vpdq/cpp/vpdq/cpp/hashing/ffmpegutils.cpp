@@ -51,12 +51,17 @@ AVFramePtr createRGB24Frame(size_t const width, size_t const height) {
     throw std::bad_alloc();
   }
 
-  frame->format = PIXEL_FORMAT;
+  frame->format = config::get_pixel_format();
   frame->width = width;
   frame->height = height;
 
   if (av_image_alloc(
-          frame->data, frame->linesize, width, height, PIXEL_FORMAT, 1) < 0) {
+          frame->data,
+          frame->linesize,
+          width,
+          height,
+          config::get_pixel_format(),
+          1) < 0) {
     throw std::bad_alloc();
   }
   return frame;

@@ -22,11 +22,25 @@ namespace vpdq {
 namespace hashing {
 namespace ffmpeg {
 
+namespace config {
+
 // Pixel format for the image passed to PDQ
-constexpr AVPixelFormat PIXEL_FORMAT = AV_PIX_FMT_RGB24;
+//
+// This probably shouldn't be changed unless PDQ expects a different pixel
+// format.
+constexpr AVPixelFormat get_pixel_format() {
+  return AV_PIX_FMT_RGB24;
+}
 
 // Downsample method for the image passed to PDQ
-constexpr int DOWNSAMPLE_METHOD = SWS_AREA;
+//
+// Changing this may affect performance and will almost certainly affect the
+// output perceptual hash of the frame.
+constexpr int get_downsample_method() {
+  return SWS_AREA;
+}
+
+} // namespace config
 
 struct AVFrameDeleter {
   void operator()(AVFrame* ptr) const {
