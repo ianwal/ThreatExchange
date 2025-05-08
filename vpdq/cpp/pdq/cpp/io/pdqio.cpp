@@ -11,9 +11,6 @@
 #include <chrono>
 #include "CImg.h"
 
-using namespace std;
-using namespace cimg_library;
-
 namespace facebook {
 namespace pdq {
 namespace hashing {

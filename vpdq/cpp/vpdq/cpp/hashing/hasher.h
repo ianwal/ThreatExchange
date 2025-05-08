@@ -5,23 +5,21 @@
 #ifndef HASHER_H
 #define HASHER_H
 
+#include <pdq/cpp/common/pdqhashtypes.h>
+#include <vpdq/cpp/hashing/bufferhasher.h>
+#include <vpdq/cpp/hashing/bufferhasherfactory.h>
+#include <vpdq/cpp/hashing/vpdqHashType.h>
+
 #include <algorithm>
-#include <atomic>
-#include <cmath>
 #include <condition_variable>
-#include <cstdio>
-#include <fstream>
-#include <functional>
-#include <iostream>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
-
-#include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
 
 namespace facebook {
 namespace vpdq {
@@ -167,7 +165,7 @@ vpdqFeature hashFrame(TFrame& frame, const VideoMetadata& video_metadata) {
       video_metadata.height, video_metadata.width);
 
   int quality;
-  pdq::hashing::Hash256 pdqHash;
+  facebook::pdq::hashing::Hash256 pdqHash;
   auto const is_hashing_successful =
       phasher->hashFrame(frame.get_buffer_ptr(), pdqHash, quality);
   if (!is_hashing_successful) {
@@ -250,8 +248,8 @@ std::vector<vpdqFeature> VpdqHasher<TFrame>::finish() {
 
   // Sort out of order frames by frame number
   std::sort(
-      std::begin(m_result),
-      std::end(m_result),
+      m_result.begin(),
+      m_result.end(),
       [](const vpdqFeature& a, const vpdqFeature& b) {
         return a.frameNumber < b.frameNumber;
       });
