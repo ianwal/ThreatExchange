@@ -5,10 +5,10 @@
 #ifndef PDQBUFFERHASHER_H
 #define PDQBUFFERHASHER_H
 
-#include <vector>
-
 #include <pdq/cpp/common/pdqhashtypes.h>
 #include <vpdq/cpp/hashing/bufferhasher.h>
+
+#include <vector>
 
 namespace facebook {
 namespace vpdq {
@@ -36,6 +36,14 @@ class PDQFrameBufferHasher : public AbstractFrameBufferHasher {
       int& quality) override;
 
   static constexpr int getFrameDownscaleDimension() { return 64; }
+
+  // Copy
+  PDQFrameBufferHasher(const PDQFrameBufferHasher&) = default;
+  PDQFrameBufferHasher& operator=(const PDQFrameBufferHasher&) = default;
+
+  // Move
+  PDQFrameBufferHasher(PDQFrameBufferHasher&&) = default;
+  PDQFrameBufferHasher& operator=(PDQFrameBufferHasher&&) = default;
 
  private:
   // Variables for computing pdq hash

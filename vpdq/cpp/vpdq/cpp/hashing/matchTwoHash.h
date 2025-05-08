@@ -5,8 +5,9 @@
 #ifndef MATCHTWOHASH_H
 #define MATCHTWOHASH_H
 
-#include <vector>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
+
+#include <vector>
 
 namespace facebook {
 namespace vpdq {

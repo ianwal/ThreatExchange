@@ -2,11 +2,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <memory>
+#include <vpdq/cpp/hashing/bufferhasherfactory.h>
 
 #include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/bufferhasherfactory.h>
 #include <vpdq/cpp/hashing/pdqbufferhasher.h>
+
+#include <memory>
 
 namespace facebook {
 namespace vpdq {

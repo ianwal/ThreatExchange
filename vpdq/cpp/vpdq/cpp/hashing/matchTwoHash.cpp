@@ -2,11 +2,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <iostream>
+#include <vpdq/cpp/hashing/matchTwoHash.h>
 
-#include <pdq/cpp/io/hashio.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
-#include <vpdq/cpp/io/vpdqio.h>
+
+#include <iostream>
+#include <vector>
 
 namespace facebook {
 namespace vpdq {
@@ -32,7 +33,7 @@ static std::vector<vpdq::hashing::vpdqFeature> filterFeatures(
     if (feature.quality >= qualityTolerance) {
       filteredHashes.push_back(feature);
     } else if (verbose) {
-      auto index = &feature - &features[0];
+      const auto index = &feature - features.data();
       std::cout << "Skipping Line " << index
                 << " Skipping Hash: " << feature.pdqHash.format()
                 << ", because of low quality: " << feature.quality << std::endl;
@@ -88,7 +89,7 @@ void matchTwoHashBrute(
   auto targetFiltered = filterFeatures(tHashes, qualityTolerance, verbose);
 
   // If no features left in either list, then abort.
-  if ((queryFiltered.size() == 0U) || (targetFiltered.size() == 0U)) {
+  if ((queryFiltered.empty()) || (targetFiltered.empty())) {
     qMatch = 0U;
     tMatch = 0U;
     return;
@@ -102,7 +103,6 @@ void matchTwoHashBrute(
 
   qMatch = (qMatchCnt * 100.0) / queryFiltered.size();
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
-  return;
 }
 
 } // namespace hashing

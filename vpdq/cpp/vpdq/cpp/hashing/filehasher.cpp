@@ -2,27 +2,29 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <algorithm>
-#include <cstdint>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <string>
+#include <vpdq/cpp/hashing/filehasher.h>
 
 #include <vpdq/cpp/hashing/ffmpegutils.h>
 #include <vpdq/cpp/hashing/ffmpegwrapper.h>
-#include <vpdq/cpp/hashing/filehasher.h>
 #include <vpdq/cpp/hashing/hasher.h>
+#include <vpdq/cpp/hashing/vpdqHashType.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/frame.h>
-#include <libavutil/imgutils.h>
 #include <libavutil/log.h>
-#include <libavutil/mem.h>
 #include <libswscale/swscale.h>
 }
+
+#include <cstdint>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace facebook {
 namespace vpdq {

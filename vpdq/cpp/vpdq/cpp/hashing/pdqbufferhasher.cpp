@@ -2,12 +2,13 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <vector>
+#include <vpdq/cpp/hashing/pdqbufferhasher.h>
 
 #include <pdq/cpp/common/pdqhashtypes.h>
 #include <pdq/cpp/hashing/pdqhashing.h>
 #include <vpdq/cpp/hashing/bufferhasher.h>
-#include <vpdq/cpp/hashing/pdqbufferhasher.h>
+
+#include <vector>
 
 namespace facebook {
 namespace vpdq {

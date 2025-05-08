@@ -7,6 +7,9 @@
 
 #include <vpdq/cpp/hashing/ffmpegwrapper.h>
 
+#include <cstddef>
+#include <string>
+
 namespace facebook {
 namespace vpdq {
 namespace hashing {

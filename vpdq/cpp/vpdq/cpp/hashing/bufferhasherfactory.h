@@ -5,9 +5,9 @@
 #ifndef BUFFERHASHERFACTORY_H
 #define BUFFERHASHERFACTORY_H
 
-#include <memory>
-
 #include <vpdq/cpp/hashing/bufferhasher.h>
+
+#include <memory>
 
 namespace facebook {
 namespace vpdq {
@@ -16,7 +16,7 @@ namespace hashing {
 // A factory design pattern to create the Buffer Hasher
 class FrameBufferHasherFactory {
  public:
-   static std::unique_ptr<AbstractFrameBufferHasher> createFrameHasher(
+  static std::unique_ptr<AbstractFrameBufferHasher> createFrameHasher(
       int frameHeight, int frameWidth);
 
   static int getFrameHasherDownscaleDimension();
