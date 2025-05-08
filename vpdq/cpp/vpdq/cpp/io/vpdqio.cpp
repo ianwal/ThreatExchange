@@ -2,14 +2,13 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/frame.h>
-#include <libavutil/mem.h>
-}
+#include <vpdq/cpp/io/vpdqio.h>
+
+#include <pdq/cpp/common/pdqhashtypes.h>
+#include <vpdq/cpp/hashing/vpdqHashType.h>
 
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -17,16 +16,11 @@ extern "C" {
 #include <string>
 #include <vector>
 
-#include <pdq/cpp/common/pdqhashtypes.h>
-#include <pdq/cpp/io/hashio.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
-#include <vpdq/cpp/io/vpdqio.h>
-
 namespace facebook {
 namespace vpdq {
 namespace io {
 
-const int TIMESTAMP_OUTPUT_PRECISION = 3;
+static constexpr int TIMESTAMP_OUTPUT_PRECISION = 3;
 
 bool loadHashesFromFileOrDie(
     const std::string& inputHashFileName,
@@ -48,17 +42,17 @@ bool loadHashesFromFileOrDie(
       frameValues.push_back(substr);
     }
 
-    if (frameValues.size() != 4) {
+    if (frameValues.size() < 4U) {
       std::cerr << "Wrong format of hash: " << str << std::endl;
       return false;
     }
     vpdqHashes.push_back(
         {facebook::pdq::hashing::Hash256::fromStringOrDie(frameValues[2]),
-         std::atoi(frameValues[0].c_str()),
-         std::atoi(frameValues[1].c_str()),
-         std::atof(frameValues[3].c_str())});
+         std::stoi(frameValues[0]),
+         std::stoi(frameValues[1]),
+         std::stod(frameValues[3])});
   }
-  if (vpdqHashes.size() == 0) {
+  if (vpdqHashes.empty()) {
     std::cerr << "Empty hash file " << inputHashFileName << std::endl;
     return false;
   }
@@ -87,7 +81,6 @@ bool outputVPDQFeatureToFile(
             << s.timeStamp;
     outfile << "\n";
   }
-  outfile.close();
   return true;
 }
 
