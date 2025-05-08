@@ -16,14 +16,16 @@ namespace hashing {
  * Compare two vpdq hash vectors in brute-force.
  * Result in two double percentages: qMatch, tMatch
  *
- * @param qHashes Query video's hash
- * @param tHashes Target video's hash
+ * @param qHashes The query video perceptual hash
+ * @param tHashes The target video perceptual hash
  * @param distanceTolerance Distance tolerance of considering a match
+ *
  * @param qualityTolerance Quality tolerance of comparing two hash. If lower
- * than the tolerance, will skip comparing.
- * @param qMatch Percentage of matches in query hash
- * @param tMatch Percentage of matches in target hash
- * @param verbose If produce detailed output for diagnostic purposes
+ *                         than the tolerance, will skip comparing.
+ *
+ * @param[out] qMatch Result percentage of matches in query hash
+ * @param[out] tMatch Result percentage of matches in target hash
+ * @param verbose Produce detailed output for diagnostic purposes
  */
 void matchTwoHashBrute(
     const std::vector<vpdq::hashing::vpdqFeature>& qHashes,

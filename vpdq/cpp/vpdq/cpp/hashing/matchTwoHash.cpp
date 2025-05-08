@@ -83,9 +83,11 @@ void matchTwoHashBrute(
     double& qMatch,
     double& tMatch,
     const bool verbose) {
-  // Filter low quality hashes
+  // Filter low quality features
   auto queryFiltered = filterFeatures(qHashes, qualityTolerance, verbose);
   auto targetFiltered = filterFeatures(tHashes, qualityTolerance, verbose);
+
+  // If no features left in either list, then abort.
   if ((queryFiltered.size() == 0U) || (targetFiltered.size() == 0U)) {
     qMatch = 0U;
     tMatch = 0U;
