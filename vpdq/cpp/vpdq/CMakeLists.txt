@@ -3,6 +3,8 @@
 
 set(VPDQSOURCES
     cpp/hashing/bufferhasher.cpp
+    cpp/hashing/bufferhasherfactory.cpp
+    cpp/hashing/pdqbufferhasher.cpp
     cpp/hashing/filehasher.cpp
     cpp/hashing/ffmpegutils.cpp
     cpp/hashing/ffmpegwrapper.cpp
@@ -12,6 +14,8 @@ set(VPDQSOURCES
 
 set(VPDQHEADERS
     cpp/hashing/bufferhasher.h
+    cpp/hashing/bufferhasherfactory.h
+    cpp/hashing/pdqbufferhasher.h
     cpp/hashing/filehasher.h
     cpp/hashing/ffmpegutils.h
     cpp/hashing/ffmpegwrapper.h

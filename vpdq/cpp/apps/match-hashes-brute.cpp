@@ -10,9 +10,6 @@
 #include <vpdq/cpp/hashing/vpdqHashType.h>
 #include <vpdq/cpp/io/vpdqio.h>
 
-using namespace std;
-using namespace facebook;
-
 static void usage(char* argv0, int rc) {
   FILE* fp = (rc == 0) ? stdout : stderr;
   fprintf(
@@ -45,8 +42,8 @@ int main(int argc, char** argv) {
   }
   distanceTolerance = atoi(argv[argi + 2]);
   qualityTolerance = atoi(argv[argi + 3]);
-  vector<facebook::vpdq::hashing::vpdqFeature> qHashes;
-  vector<facebook::vpdq::hashing::vpdqFeature> tHashes;
+  std::vector<facebook::vpdq::hashing::vpdqFeature> qHashes;
+  std::vector<facebook::vpdq::hashing::vpdqFeature> tHashes;
   bool ret = facebook::vpdq::io::loadHashesFromFileOrDie(argv[argi], qHashes);
   if (!ret) {
     return EXIT_FAILURE;
@@ -57,7 +54,7 @@ int main(int argc, char** argv) {
   }
   double qMatch = 0;
   double tMatch = 0;
-  ret = facebook::vpdq::hashing::matchTwoHashBrute(
+  facebook::vpdq::hashing::matchTwoHashBrute(
       qHashes,
       tHashes,
       distanceTolerance,
@@ -65,9 +62,6 @@ int main(int argc, char** argv) {
       qMatch,
       tMatch,
       verbose);
-  if (!ret) {
-    return EXIT_FAILURE;
-  }
   // Print float with 2 decimal places
   printf("%0.2f Percentage Query Video match\n", qMatch);
   printf("%0.2f Percentage Target Video match\n", tMatch);

@@ -2,29 +2,56 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <string>
-
 #include <vpdq/cpp/hashing/ffmpegwrapper.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libavutil/frame.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/log.h>
-#include <libavutil/mem.h>
+#include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
 }
+
+#include <cstdint>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace facebook {
 namespace vpdq {
 namespace hashing {
 namespace ffmpeg {
+
+void AVFrameDeleter::operator()(AVFrame* ptr) const {
+  if (ptr) {
+    if (ptr->data[0]) {
+      // Free memory allocated by image_alloc
+      // See createTargetFrame()
+      av_freep(&ptr->data[0]);
+    }
+    av_frame_free(&ptr);
+  }
+}
+
+void AVPacketDeleter::operator()(AVPacket* ptr) const {
+  if (ptr) {
+    av_packet_unref(ptr);
+    av_packet_free(&ptr);
+  }
+}
+
+void SwsContextDeleter::operator()(SwsContext* ptr) const {
+  sws_freeContext(ptr);
+}
+
+void AVFormatContextDeleter::operator()(AVFormatContext* ptr) const {
+  avformat_close_input(&ptr);
+}
+
+void AVCodecContextDeleter::operator()(AVCodecContext* ptr) const {
+  avcodec_free_context(&ptr);
+}
 
 FFmpegVideo::FFmpegVideo(const std::string& filename) : videoStreamIndex{-1U} {
   // Open the input file
@@ -117,8 +144,8 @@ bool FFmpegVideo::createSwsContext() {
       codecContext->pix_fmt,
       width,
       height,
-      PIXEL_FORMAT,
-      DOWNSAMPLE_METHOD,
+      config::get_pixel_format(),
+      config::get_downsample_method(),
       nullptr,
       nullptr,
       nullptr));
