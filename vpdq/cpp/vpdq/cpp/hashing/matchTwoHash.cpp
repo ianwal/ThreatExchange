@@ -2,11 +2,12 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 // ================================================================
 
-#include <iostream>
+#include <vpdq/cpp/hashing/matchTwoHash.h>
 
-#include <pdq/cpp/io/hashio.h>
 #include <vpdq/cpp/hashing/vpdqHashType.h>
-#include <vpdq/cpp/io/vpdqio.h>
+
+#include <iostream>
+#include <vector>
 
 namespace facebook {
 namespace vpdq {
@@ -32,7 +33,7 @@ static std::vector<vpdq::hashing::vpdqFeature> filterFeatures(
     if (feature.quality >= qualityTolerance) {
       filteredHashes.push_back(feature);
     } else if (verbose) {
-      auto index = &feature - &features[0];
+      const auto index = &feature - features.data();
       std::cout << "Skipping Line " << index
                 << " Skipping Hash: " << feature.pdqHash.format()
                 << ", because of low quality: " << feature.quality << std::endl;
@@ -75,7 +76,7 @@ static std::vector<vpdq::hashing::vpdqFeature>::size_type findMatches(
   return matchCnt;
 }
 
-bool matchTwoHashBrute(
+void matchTwoHashBrute(
     const std::vector<vpdq::hashing::vpdqFeature>& qHashes,
     const std::vector<vpdq::hashing::vpdqFeature>& tHashes,
     const int distanceTolerance,
@@ -83,9 +84,16 @@ bool matchTwoHashBrute(
     double& qMatch,
     double& tMatch,
     const bool verbose) {
-  // Filter low quality hashes
+  // Filter low quality features
   auto queryFiltered = filterFeatures(qHashes, qualityTolerance, verbose);
   auto targetFiltered = filterFeatures(tHashes, qualityTolerance, verbose);
+
+  // If no features left in either list, then abort.
+  if ((queryFiltered.empty()) || (targetFiltered.empty())) {
+    qMatch = 0U;
+    tMatch = 0U;
+    return;
+  }
 
   // Get count of query in target and target in query
   auto qMatchCnt =
@@ -95,8 +103,8 @@ bool matchTwoHashBrute(
 
   qMatch = (qMatchCnt * 100.0) / queryFiltered.size();
   tMatch = (tMatchCnt * 100.0) / targetFiltered.size();
-  return true;
 }
+
 } // namespace hashing
 } // namespace vpdq
 } // namespace facebook

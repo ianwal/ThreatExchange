@@ -5,11 +5,10 @@
 #ifndef FILEHASHER_H
 #define FILEHASHER_H
 
+#include <vpdq/cpp/hashing/vpdqHashType.h>
+
 #include <string>
 #include <vector>
-
-#include <pdq/cpp/common/pdqhashtypes.h>
-#include <vpdq/cpp/hashing/vpdqHashType.h>
 
 namespace facebook {
 namespace vpdq {

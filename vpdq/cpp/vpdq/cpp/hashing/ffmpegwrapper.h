@@ -5,68 +5,82 @@
 #ifndef FFMPEGWRAPPER_H
 #define FFMPEGWRAPPER_H
 
-#include <memory>
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/frame.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/log.h>
-#include <libavutil/mem.h>
 #include <libswscale/swscale.h>
 }
+
+#include <cstdint>
+#include <memory>
 
 namespace facebook {
 namespace vpdq {
 namespace hashing {
 namespace ffmpeg {
 
+namespace config {
+
 // Pixel format for the image passed to PDQ
-constexpr AVPixelFormat PIXEL_FORMAT = AV_PIX_FMT_RGB24;
+//
+// This probably shouldn't be changed unless PDQ expects a different pixel
+// format.
+constexpr AVPixelFormat get_pixel_format() {
+  return AV_PIX_FMT_RGB24;
+}
 
 // Downsample method for the image passed to PDQ
-constexpr int DOWNSAMPLE_METHOD = SWS_AREA;
+//
+// Changing this may affect performance and will almost certainly affect the
+// output perceptual hash of the frame.
+constexpr int get_downsample_method() {
+  return SWS_AREA;
+}
 
+} // namespace config
+
+// Custom deleters used to wrap FFmpeg objects with smart pointers
+
+/** @brief A custom deleter functor for AVFrame* */
 struct AVFrameDeleter {
-  void operator()(AVFrame* ptr) const {
-    if (ptr) {
-      if (ptr->data[0]) {
-        // Free memory allocated by image_alloc
-        // See createTargetFrame()
-        av_freep(&ptr->data[0]);
-      }
-      av_frame_free(&ptr);
-    }
-  }
+  void operator()(AVFrame* ptr) const;
 };
 
+/** @brief A custom deleter functor for AVPacket* */
 struct AVPacketDeleter {
-  void operator()(AVPacket* ptr) const {
-    if (ptr) {
-      av_packet_unref(ptr);
-      av_packet_free(&ptr);
-    }
-  }
+  void operator()(AVPacket* ptr) const;
 };
 
+/** @brief A custom deleter functor for SwsContext* */
 struct SwsContextDeleter {
-  void operator()(SwsContext* ptr) const { sws_freeContext(ptr); }
+  void operator()(SwsContext* ptr) const;
 };
 
+/** @brief A custom deleter functor for AVFormatContext* */
 struct AVFormatContextDeleter {
-  void operator()(AVFormatContext* ptr) const { avformat_close_input(&ptr); }
+  void operator()(AVFormatContext* ptr) const;
 };
 
+/** @brief A custom deleter functor for AVCodecContext* */
 struct AVCodecContextDeleter {
-  void operator()(AVCodecContext* ptr) const { avcodec_free_context(&ptr); }
+  void operator()(AVCodecContext* ptr) const;
 };
 
+/** @brief A smart pointer wrapper for AVFrame */
 using AVFramePtr = std::unique_ptr<AVFrame, AVFrameDeleter>;
+
+/** @brief A smart pointer wrapper for AVPacket */
 using AVPacketPtr = std::unique_ptr<AVPacket, AVPacketDeleter>;
+
+/** @brief A smart pointer wrapper for SwsContext */
 using SwsContextPtr = std::unique_ptr<SwsContext, SwsContextDeleter>;
+
+/** @brief A smart pointer wrapper for AVFormatContext */
 using AVFormatContextPtr =
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter>;
+
+/** @brief A smart pointer wrapper for AVCodecContext */
 using AVCodecContextPtr =
     std::unique_ptr<AVCodecContext, AVCodecContextDeleter>;
 
@@ -85,6 +99,16 @@ class FFmpegVideo {
    * @note If the SwsContext fails to be created the swsContext will be nullptr.
    */
   bool createSwsContext();
+
+  // Copy
+  FFmpegVideo(const FFmpegVideo&) = delete;
+  FFmpegVideo& operator=(const FFmpegVideo&) = delete;
+
+  // Move
+  FFmpegVideo(FFmpegVideo&&) = default;
+  FFmpegVideo& operator=(FFmpegVideo&&) = default;
+
+  ~FFmpegVideo() = default;
 
   AVCodecContextPtr codecContext;
   AVFormatContextPtr formatContext;
@@ -120,8 +144,8 @@ class FFmpegFrame {
   unsigned char* get_buffer_ptr();
 
   // Copy
-  FFmpegFrame(FFmpegFrame const&) = delete;
-  FFmpegFrame& operator=(FFmpegFrame const&) = delete;
+  FFmpegFrame(const FFmpegFrame&) = delete;
+  FFmpegFrame& operator=(const FFmpegFrame&) = delete;
 
   // Move
   FFmpegFrame(FFmpegFrame&&) = default;
